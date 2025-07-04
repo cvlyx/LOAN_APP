@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Special Offers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .loan-progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .loan-progress::-webkit-progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 4px;
+        }
+        
+        .loan-progress::-webkit-progress-value {
+            background-color: #4361ee;
+            border-radius: 4px;
+        }
+        
+        .offer-card {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.2);
+        }
+        
+        .malawi-flag-bg {
+            background: linear-gradient(to bottom, #000000 33%, #ce1126 33%, #ce1126 66%, #339e35 66%);
+        }
+
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-repaid {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .dark .status-active {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .dark .status-pending {
+            background-color: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .dark .status-overdue {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .dark .status-repaid {
+            background-color: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        currentView: 'special_offers',
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        loanApplicationOpen: false,
+        showPaymentModal: false,
+        paymentAmount: '',
+        paymentMethod: 'Airtel Money',
+        userProfile: {
+            name: 'John Banda',
+            phone: '+265 991 234 567',
+            email: 'john.banda@example.com',
+            address: 'Lilongwe, Area 3',
+            occupation: 'Business Owner',
+            idType: 'National ID',
+            idNumber: 'MW12345678',
+            creditScore: 720
+        },
+        loanAmount: 50000,
+        loanTerm: 4,
+        loanPurpose: 'Business',
+        nationalIdFile: null,
+        collateralFiles: [],
+        notifications: [
+            { id: 1, type: 'payment', title: 'Payment Due', content: 'Payment of MK15,000 due in 3 days', time: 'Today', read: false },
+            { id: 2, type: 'approval', title: 'Loan Approved', content: 'Your loan of MK50,000 has been approved', time: '2 days ago', read: true },
+            { id: 3, type: 'offer', title: 'Special Offer', content: 'Limited time: Get 1% lower interest rate', time: '5 days ago', read: true }
+        ],
+        unreadCount: 1,
+        loans: [
+            { id: 'L-10245', amount: 'MK50,000', interest: '15%', disbursed: '2023-06-15', due: '2023-12-15', status: 'active', nextPayment: 'MK15,000', nextPaymentDate: '2023-09-15', paid: 30, total: 100 },
+            { id: 'L-10246', amount: 'MK25,000', interest: '12%', disbursed: '2023-07-01', due: '2024-01-01', status: 'pending', nextPayment: 'MK7,500', nextPaymentDate: '2023-10-01', paid: 0, total: 100 },
+            { id: 'L-10247', amount: 'MK75,000', interest: '18%', disbursed: '2023-05-20', due: '2023-11-20', status: 'overdue', nextPayment: 'MK22,500', nextPaymentDate: '2023-08-20', paid: 60, total: 100 },
+            { id: 'L-10248', amount: 'MK100,000', interest: '20%', disbursed: '2023-04-05', due: '2024-04-05', status: 'repaid', nextPayment: 'MK0', nextPaymentDate: 'N/A', paid: 100, total: 100 }
+        ],
+        specialOffers: [
+            { id: 1, title: 'Business Boost', description: 'Special 12% rate for business loans', icon: 'fa-solid fa-briefcase', amount: 'Up to MK500,000', deadline: '2023-10-31', category: 'business', featured: true },
+            { id: 2, title: 'Education Support', description: 'Low-interest student loans', icon: 'fa-solid fa-graduation-cap', amount: 'Up to MK300,000', deadline: '2023-12-15', category: 'education', featured: false },
+            { id: 3, title: 'Agricultural Loan', description: 'Seasonal farming loans with flexible repayment', icon: 'fa-solid fa-tractor', amount: 'Up to MK1,000,000', deadline: '2023-11-30', category: 'agriculture', featured: true },
+            { id: 4, title: 'Emergency Fund', description: 'Quick approval for urgent needs', icon: 'fa-solid fa-heart-pulse', amount: 'Up to MK100,000', deadline: '2023-09-30', category: 'emergency', featured: false },
+            { id: 5, title: 'Home Improvement', description: 'Renovate your home with low rates', icon: 'fa-solid fa-house', amount: 'Up to MK750,000', deadline: '2023-11-15', category: 'home', featured: false },
+            { id: 6, title: 'Vehicle Purchase', description: 'Finance your dream vehicle', icon: 'fa-solid fa-car', amount: 'Up to MK2,000,000', deadline: '2023-12-31', category: 'vehicle', featured: true }
+        ],
+        paymentMethods: [
+            { id: 1, name: 'Airtel Money', icon: 'fa-solid fa-mobile-screen' },
+            { id: 2, name: 'TNM Mpamba', icon: 'fa-solid fa-mobile' },
+            { id: 3, name: 'Standard Bank', icon: 'fa-solid fa-building-columns' },
+            { id: 4, name: 'National Bank', icon: 'fa-solid fa-landmark' },
+            { id: 5, name: 'Cash', icon: 'fa-solid fa-money-bill-wave' }
+        ],
+        testimonials: [
+            { name: 'Grace Mwale', business: 'Tailoring Shop', quote: 'The business loan helped me expand my tailoring shop and buy new machines. Now I serve more customers!', rating: 5 },
+            { name: 'Peter Phiri', business: 'Farming', quote: 'Agricultural loan came at the right time for planting season. The flexible repayment works perfectly with harvest cycles.', rating: 5 },
+            { name: 'Mary Banda', business: 'Restaurant', quote: 'Quick approval process and reasonable rates. I was able to renovate my restaurant and attract more customers.', rating: 4 }
+        ],
+        faqs: [
+            { question: 'What documents do I need for a loan application?', answer: 'You need a valid National ID, proof of income, and collateral documentation (for secured loans).' },
+            { question: 'How long does the approval process take?', answer: 'Most applications are processed within 24-48 hours. Emergency loans can be approved within 2-4 hours.' },
+            { question: 'Can I pay off my loan early?', answer: 'Yes, you can pay off your loan early without any prepayment penalties. This can save you money on interest.' },
+            { question: 'What happens if I miss a payment?', answer: 'We offer a grace period of 7 days. After that, late fees may apply. Contact us immediately if you anticipate payment difficulties.' }
+        ],
+        selectedCategory: 'all',
+        get filteredOffers() {
+            if (this.selectedCategory === 'all') {
+                return this.specialOffers;
+            }
+            return this.specialOffers.filter(offer => offer.category === this.selectedCategory);
+        },
+        get featuredOffers() {
+            return this.specialOffers.filter(offer => offer.featured);
+        },
+        handleNationalIdUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+                this.nationalIdFile = file;
+            }
+        },
+        handleCollateralUpload(event) {
+            const files = Array.from(event.target.files);
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Maximum size is 5MB`);
+                    continue;
+                }
+                this.collateralFiles.push(file);
+            }
+        },
+        removeCollateralFile(index) {
+            this.collateralFiles.splice(index, 1);
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+    "
+    :class="{ 'dark': darkMode }">
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-gift mr-3 text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-gift mr-3 text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Special Offers</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode" title="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span x-show="unreadCount > 0" class="notification-dot"></span>
+                            </button>
+                            <div x-show="notificationsOpen" @click.away="notificationsOpen = false" class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-md shadow-lg overflow-hidden z-20" x-cloak>
+                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notifications</h3>
+                                    <p class="text-sm text-gray-500">You have <span x-text="unreadCount" class="font-medium"></span> unread notifications</p>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <template x-for="notification in notifications">
+                                        <a href="#" @click="if(!notification.read) { notification.read = true; unreadCount--; }" class="block px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <template x-if="notification.type === 'payment'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                                                            <i class="fa-solid fa-money-bill-wave"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'approval'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-500">
+                                                            <i class="fa-solid fa-check"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'offer'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                                                            <i class="fa-solid fa-gift"></i>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
+                                                    <p class="text-sm text-gray-500" x-text="notification.content"></p>
+                                                    <p class="text-xs text-gray-400 mt-1" x-text="notification.time"></p>
+                                                </div>
+                                                <div class="ml-auto" x-show="!notification.read">
+                                                    <span class="h-2 w-2 rounded-full bg-primary"></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                                <div class="p-3 bg-gray-50 dark:bg-dark-700 text-center">
+                                    <a href="#" class="text-sm font-medium text-primary hover:text-primary/80">View all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="my_profile.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Your Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Settings</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900">
+                <!-- Special Offers Page -->
+                <div class="fade-in">
+                    <!-- Featured Offer Banner -->
+                    <div class="gradient-bg rounded-lg p-8 mb-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-3xl font-bold mb-2">Limited Time Offer!</h2>
+                                <p class="text-xl mb-4">Get up to MK1,000,000 for your agricultural needs</p>
+                                <p class="text-lg opacity-90">Special seasonal rates starting from 8% APR</p>
+                                <div class="mt-4 flex items-center space-x-4">
+                                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">Ends: November 30, 2023</span>
+                                    <span class="bg-white/20 px-3 py-1 rounded-full text-sm">Limited Spots Available</span>
+                                </div>
+                            </div>
+                            <div class="hidden md:block">
+                                <i class="fa-solid fa-tractor text-6xl opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button @click="loanApplicationOpen = true" class="bg-white text-primary hover:bg-gray-100 px-6 py-3 rounded-lg font-medium">
+                                Apply Now
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Offer Categories -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Browse by Category</h3>
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter:</label>
+                                <select x-model="selectedCategory" class="border border-gray-300 dark:border-gray-700 rounded-lg py-1 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                    <option value="all">All Categories</option>
+                                    <option value="business">Business</option>
+                                    <option value="education">Education</option>
+                                    <option value="agriculture">Agriculture</option>
+                                    <option value="emergency">Emergency</option>
+                                    <option value="home">Home</option>
+                                    <option value="vehicle">Vehicle</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <button @click="selectedCategory = 'business'" :class="{'bg-primary text-white': selectedCategory === 'business'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-briefcase text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Business</span>
+                            </button>
+                            <button @click="selectedCategory = 'education'" :class="{'bg-primary text-white': selectedCategory === 'education'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-graduation-cap text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Education</span>
+                            </button>
+                            <button @click="selectedCategory = 'agriculture'" :class="{'bg-primary text-white': selectedCategory === 'agriculture'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-tractor text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Agriculture</span>
+                            </button>
+                            <button @click="selectedCategory = 'emergency'" :class="{'bg-primary text-white': selectedCategory === 'emergency'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-heart-pulse text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Emergency</span>
+                            </button>
+                            <button @click="selectedCategory = 'home'" :class="{'bg-primary text-white': selectedCategory === 'home'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-house text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Home</span>
+                            </button>
+                            <button @click="selectedCategory = 'vehicle'" :class="{'bg-primary text-white': selectedCategory === 'vehicle'}" class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-primary transition-colors">
+                                <i class="fa-solid fa-car text-2xl mb-2"></i>
+                                <span class="text-sm font-medium">Vehicle</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Available Offers -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                        <template x-for="offer in filteredOffers" :key="offer.id">
+                            <div class="offer-card bg-white dark:bg-dark-800 border border-gray-200 dark:border-gray-700">
+                                <div class="p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="p-3 rounded-full bg-primary/10">
+                                            <i :class="offer.icon + ' text-primary text-2xl'"></i>
+                                        </div>
+                                        <div x-show="offer.featured" class="bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full text-xs font-medium">
+                                            Featured
+                                        </div>
+                                    </div>
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2" x-text="offer.title"></h4>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-4" x-text="offer.description"></p>
+                                    <div class="space-y-2 mb-4">
+                                        <div class="flex items-center justify-between text-sm">
+                                            <span class="text-gray-500 dark:text-gray-400">Amount:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white" x-text="offer.amount"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-sm">
+                                            <span class="text-gray-500 dark:text-gray-400">Deadline:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white" x-text="offer.deadline"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-sm">
+                                            <span class="text-gray-500 dark:text-gray-400">Interest Rate:</span>
+                                            <span class="font-medium text-green-600 dark:text-green-400">From 8% APR</span>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <button @click="loanApplicationOpen = true; loanPurpose = offer.category" class="w-full bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                                            Apply Now
+                                        </button>
+                                        <button class="w-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-dark-700 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg text-sm font-medium">
+                                            Learn More
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <!-- Eligibility Requirements -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Eligibility Requirements</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-3">General Requirements</h4>
+                                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Malawian citizen aged 18-65 years
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Valid National ID
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Proof of income or business activity
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Good credit history (if applicable)
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-3">Additional Requirements</h4>
+                                <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Collateral for loans above MK100,000
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Business registration (for business loans)
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Land title (for agricultural loans)
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fa-solid fa-check text-green-500 mr-2"></i>
+                                        Guarantor (for first-time borrowers)
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Stories -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Success Stories</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <template x-for="testimonial in testimonials" :key="testimonial.name">
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex items-center mb-3">
+                                        <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                                            <i class="fa-solid fa-user text-primary"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h4 class="font-medium text-gray-900 dark:text-white" x-text="testimonial.name"></h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400" x-text="testimonial.business"></p>
+                                        </div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3" x-text="testimonial.quote"></p>
+                                    <div class="flex items-center">
+                                        <template x-for="i in testimonial.rating" :key="i">
+                                            <i class="fa-solid fa-star text-yellow-400"></i>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- FAQ Section -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Frequently Asked Questions</h3>
+                        <div class="space-y-4">
+                            <template x-for="faq in faqs" :key="faq.question">
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <button class="w-full text-left p-4 focus:outline-none" @click="faq.open = !faq.open">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium text-gray-900 dark:text-white" x-text="faq.question"></h4>
+                                            <i class="fa-solid fa-chevron-down transition-transform" :class="{'rotate-180': faq.open}"></i>
+                                        </div>
+                                    </button>
+                                    <div x-show="faq.open" x-collapse class="px-4 pb-4">
+                                        <p class="text-gray-600 dark:text-gray-400" x-text="faq.answer"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loan Application Modal -->
+    <div x-show="loanApplicationOpen" x-cloak class="fixed z-50 inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="loanApplicationOpen = false"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-dark-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                                Apply for New Loan
+                            </h3>
+                            <div class="mt-2 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Amount (MK)</label>
+                                    <input type="number" x-model="loanAmount" title="Enter loan amount" placeholder="Enter loan amount" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Term (weeks)</label>
+                                    <select x-model="loanTerm" title="Select loan term" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                        <option value="1">1 week</option>
+                                        <option value="2">2 weeks</option>
+                                        <option value="3">3 weeks</option>
+                                        <option value="4">4 weeks</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Purpose</label>
+                                    <select x-model="loanPurpose" title="Select loan purpose" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                        <option>Business</option>
+                                        <option>Education</option>
+                                        <option>Medical</option>
+                                        <option>Personal</option>
+                                        <option>Agriculture</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">National ID Document <span class="text-red-500">*</span></label>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                                        <input type="file" id="nationalId" accept="image/*,.pdf" class="hidden" @change="handleNationalIdUpload($event)">
+                                        <label for="nationalId" class="cursor-pointer">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload National ID</p>
+                                                <p class="text-xs text-gray-500 mt-1">Supports: JPG, PNG, PDF (Max 5MB)</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div x-show="nationalIdFile" class="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                                        <div class="flex items-center text-sm text-green-700 dark:text-green-300">
+                                            <i class="fa-solid fa-check-circle mr-2"></i>
+                                            <span x-text="nationalIdFile ? nationalIdFile.name : ''"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Collateral Images <span class="text-red-500">*</span></label>
+                                    <p class="text-xs text-gray-500 mb-2">Upload images of electronic gadgets worth the loan amount</p>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                                        <input type="file" id="collateral" accept="image/*" multiple class="hidden" @change="handleCollateralUpload($event)">
+                                        <label for="collateral" class="cursor-pointer">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fa-solid fa-images text-3xl text-gray-400 mb-2"></i>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload collateral images</p>
+                                                <p class="text-xs text-gray-500 mt-1">Multiple images allowed (Max 5MB each)</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div x-show="collateralFiles.length > 0" class="mt-2 space-y-1">
+                                        <template x-for="(file, index) in collateralFiles" :key="index">
+                                            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                                                <div class="flex items-center justify-between text-sm text-blue-700 dark:text-blue-300">
+                                                    <div class="flex items-center">
+                                                        <i class="fa-solid fa-image mr-2"></i>
+                                                        <span x-text="file.name"></span>
+                                                    </div>
+                                                    <button @click="removeCollateralFile(index)" class="text-red-500 hover:text-red-700">
+                                                        <i class="fa-solid fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
+                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">Loan Summary</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Amount:</span>
+                                            <span x-text="'MK' + loanAmount.toLocaleString()"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Term:</span>
+                                            <span x-text="loanTerm + ' weeks'"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Interest Rate:</span>
+                                            <span>10%</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Weekly Payment:</span>
+                                            <span x-text="
+                                                loanTerm === 1 ? 'MK' + (loanAmount * 0.25).toLocaleString() :
+                                                loanTerm === 2 ? 'MK' + (loanAmount * 0.35).toLocaleString() :
+                                                loanTerm === 3 ? 'MK' + (loanAmount * 0.50).toLocaleString() :
+                                                loanTerm === 4 ? 'MK' + (loanAmount * 0.75).toLocaleString() : ''
+                                            "></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="
+                        if (!nationalIdFile) {
+                            alert('Please upload your National ID document');
+                            return;
+                        }
+                        if (collateralFiles.length === 0) {
+                            alert('Please upload at least one collateral image');
+                            return;
+                        }
+                        alert('Loan application submitted successfully!');
+                        loanApplicationOpen = false;
+                        nationalIdFile = null;
+                        collateralFiles = [];
+                    " class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                        Submit Application
+                    </button>
+                    <button type="button" @click="loanApplicationOpen = false; nationalIdFile = null; collateralFiles = [];" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

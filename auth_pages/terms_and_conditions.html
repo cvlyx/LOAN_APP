@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRM Creditors | Terms and Conditions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .section-number {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+        
+        .terms-section {
+            scroll-margin-top: 100px;
+        }
+        
+        .toc-link {
+            transition: all 0.2s ease;
+        }
+        
+        .toc-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .print-button {
+            transition: all 0.3s ease;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -5px rgba(67, 97, 238, 0.3);
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #e5e7eb !important;
+            }
+            
+            .gradient-bg {
+                background: #4361ee !important;
+            }
+            
+            .section-number {
+                color: #4361ee !important;
+                -webkit-text-fill-color: #4361ee !important;
+            }
+        }
+        
+        /* Responsive enhancements */
+        @media (max-width: 768px) {
+            .mobile-padding {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem !important;
+            }
+            
+            .mobile-hidden {
+                display: none !important;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        showTOC: false,
+        currentSection: '',
+        scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+            this.showTOC = false;
+        },
+        printPage() {
+            window.print();
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+        
+        // Intersection Observer for active section tracking
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    currentSection = entry.target.id;
+                }
+            });
+        }, { threshold: 0.5 });
+        
+        document.querySelectorAll('.terms-section').forEach(section => {
+            observer.observe(section);
+        });
+    "
+    :class="{ 'dark': darkMode }">
+    
+    <div class="min-h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Header -->
+        <header class="bg-white dark:bg-dark-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-xl fa-solid fa-file-contract"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-lg font-bold text-gray-900 dark:text-white">IRM Creditors</h1>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Terms and Conditions</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button @click="showTOC = !showTOC" class="lg:hidden p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">
+                            <i class="fa-solid fa-list"></i>
+                        </button>
+                        
+                        <button @click="printPage()" class="print-button bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm">
+                            <i class="fa-solid fa-print mr-2"></i>
+                            <span class="mobile-hidden">Print</span>
+                        </button>
+                        
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="lg:grid lg:grid-cols-4 lg:gap-8">
+                <!-- Table of Contents - Desktop -->
+                <div class="hidden lg:block lg:col-span-1">
+                    <div class="sticky top-24">
+                        <div class="card bg-white dark:bg-dark-800 p-6 shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                <i class="fa-solid fa-list mr-2 text-primary"></i>
+                                Table of Contents
+                            </h3>
+                            <nav class="space-y-2">
+                                <a href="#eligibility" @click="scrollToSection('eligibility')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    1. Eligibility
+                                </a>
+                                <a href="#collateral" @click="scrollToSection('collateral')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    2. Collateral Requirements
+                                </a>
+                                <a href="#duration" @click="scrollToSection('duration')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    3. Loan Duration & Repayment
+                                </a>
+                                <a href="#repayment" @click="scrollToSection('repayment')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    4. Repayment Terms
+                                </a>
+                                <a href="#default" @click="scrollToSection('default')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    5. Default & Consequences
+                                </a>
+                                <a href="#responsibilities" @click="scrollToSection('responsibilities')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    6. Applicant Responsibilities
+                                </a>
+                                <a href="#privacy" @click="scrollToSection('privacy')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    7. Privacy & Data Use
+                                </a>
+                                <a href="#approval" @click="scrollToSection('approval')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    8. Loan Approval
+                                </a>
+                                <a href="#use-of-funds" @click="scrollToSection('use-of-funds')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    9. Use of Loan Funds
+                                </a>
+                                <a href="#amendments" @click="scrollToSection('amendments')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    10. Right to Amend Terms
+                                </a>
+                                <a href="#disputes" @click="scrollToSection('disputes')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    11. Dispute Resolution
+                                </a>
+                                <a href="#liability" @click="scrollToSection('liability')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    12. Limitation of Liability
+                                </a>
+                                <a href="#agreement" @click="scrollToSection('agreement')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                    13. Entire Agreement
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile TOC -->
+                <div x-show="showTOC" x-cloak class="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" @click="showTOC = false">
+                    <div class="bg-white dark:bg-dark-800 w-80 h-full overflow-y-auto p-6" @click.stop>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Table of Contents</h3>
+                            <button @click="showTOC = false" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        <nav class="space-y-2">
+                            <a href="#eligibility" @click="scrollToSection('eligibility')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                1. Eligibility
+                            </a>
+                            <a href="#collateral" @click="scrollToSection('collateral')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                2. Collateral Requirements
+                            </a>
+                            <a href="#duration" @click="scrollToSection('duration')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                3. Loan Duration & Repayment
+                            </a>
+                            <a href="#repayment" @click="scrollToSection('repayment')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                4. Repayment Terms
+                            </a>
+                            <a href="#default" @click="scrollToSection('default')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                5. Default & Consequences
+                            </a>
+                            <a href="#responsibilities" @click="scrollToSection('responsibilities')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                6. Applicant Responsibilities
+                            </a>
+                            <a href="#privacy" @click="scrollToSection('privacy')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                7. Privacy & Data Use
+                            </a>
+                            <a href="#approval" @click="scrollToSection('approval')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                8. Loan Approval
+                            </a>
+                            <a href="#use-of-funds" @click="scrollToSection('use-of-funds')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                9. Use of Loan Funds
+                            </a>
+                            <a href="#amendments" @click="scrollToSection('amendments')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                10. Right to Amend Terms
+                            </a>
+                            <a href="#disputes" @click="scrollToSection('disputes')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                11. Dispute Resolution
+                            </a>
+                            <a href="#liability" @click="scrollToSection('liability')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                12. Limitation of Liability
+                            </a>
+                            <a href="#agreement" @click="scrollToSection('agreement')" class="toc-link block px-3 py-2 text-sm text-gray-600 dark:text-gray-300 hover:text-primary rounded-lg">
+                                13. Entire Agreement
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="lg:col-span-3">
+                    <!-- Header Section -->
+                    <div class="card bg-white dark:bg-dark-800 p-8 mb-8 shadow-sm">
+                        <div class="text-center">
+                            <div class="gradient-bg w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-file-contract text-white text-2xl"></i>
+                            </div>
+                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">IRM CREDITORS</h1>
+                            <h2 class="text-xl font-semibold text-primary mb-2">TERMS AND CONDITIONS</h2>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">A division of IRM Enterprise</p>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                <p class="text-sm text-blue-700 dark:text-blue-300">
+                                    <i class="fa-solid fa-info-circle mr-2"></i>
+                                    These Terms and Conditions outline the agreement between IRM Creditors and any loan applicant using its services. All applicants must read and understand the terms before submitting a loan request.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms Sections -->
+                    <div class="space-y-8">
+                        <!-- Section 1: Eligibility -->
+                        <section id="eligibility" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">1.</span> ELIGIBILITY
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">To qualify for a loan from IRM Creditors:</p>
+                                <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Applicant must be a citizen of Malawi
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Applicant must be 18 years or older
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        A clear photo of a valid Malawi National ID must be submitted (passports not accepted)
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Collateral must be submitted and approved before loan approval
+                                    </li>
+                                </ul>
+                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mt-4">
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                        <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+                                        Proof of income is not required. Exceptions to citizenship may be considered but are not guaranteed.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 2: Collateral Requirements -->
+                        <section id="collateral" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">2.</span> COLLATERAL REQUIREMENTS
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-shield-halved text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        Collateral must be submitted and verified before any loan is disbursed
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-balance-scale text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        The value of the collateral must equal or exceed the loan amount
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-list-check text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        Acceptable forms include electronics, motorcycles, appliances, or titled property, subject to evaluation
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-gavel text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        IRM Creditors reserves full discretion over acceptance of collateral
+                                    </li>
+                                </ul>
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+                                    <p class="text-sm text-red-700 dark:text-red-300 font-medium">
+                                        <i class="fa-solid fa-exclamation-triangle mr-2"></i>
+                                        <strong>Important:</strong> Failure to repay the loan within the agreed time results in permanent forfeiture of the collateral. No return, exchange, or compensation shall be provided once collateral is seized.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Section 3: Loan Duration and Repayment Schedule -->
+                        <section id="duration" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">3.</span> LOAN DURATION AND REPAYMENT SCHEDULE
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                    Loan repayment period is fixed at <strong>four (4) weeks</strong> from the date of disbursement. The repayment schedule is as follows:
+                                </p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-blue-700 dark:text-blue-300 font-medium">Week 1</span>
+                                            <span class="text-blue-900 dark:text-blue-100 font-bold text-lg">25%</span>
+                                        </div>
+                                        <p class="text-xs text-blue-600 dark:text-blue-400 mt-1">of the loan amount</p>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-green-700 dark:text-green-300 font-medium">Week 2</span>
+                                            <span class="text-green-900 dark:text-green-100 font-bold text-lg">35%</span>
+                                        </div>
+                                        <p class="text-xs text-green-600 dark:text-green-400 mt-1">of the loan amount</p>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-yellow-700 dark:text-yellow-300 font-medium">Week 3</span>
+                                            <span class="text-yellow-900 dark:text-yellow-100 font-bold text-lg">50%</span>
+                                        </div>
+                                        <p class="text-xs text-yellow-600 dark:text-yellow-400 mt-1">of the loan amount</p>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-red-700 dark:text-red-300 font-medium">Week 4</span>
+                                            <span class="text-red-900 dark:text-red-100 font-bold text-lg">75%</span>
+                                        </div>
+                                        <p class="text-xs text-red-600 dark:text-red-400 mt-1">of the loan amount</p>
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 dark:text-gray-300 mt-4 text-sm">
+                                    Any applicable service charges or interest will be stated clearly in the loan agreement.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Section 4: Repayment Terms -->
+                        <section id="repayment" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">4.</span> REPAYMENT TERMS
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-clock text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        Repayments must be made on or before the weekly deadlines
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-fast-forward text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Early repayment is allowed and may reduce remaining charges if outlined in the agreement
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-credit-card text-primary mt-1 mr-3 flex-shrink-0"></i>
+                                        Accepted payment methods include mobile money, direct bank deposit, or other approved options
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-exclamation-triangle text-warning mt-1 mr-3 flex-shrink-0"></i>
+                                        Late payments may attract penalties and affect eligibility for future loans
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Section 5: Default and Consequences -->
+                        <section id="default" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">5.</span> DEFAULT AND CONSEQUENCES
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                                    <h4 class="text-red-800 dark:text-red-200 font-semibold mb-2">A loan is considered in default if:</h4>
+                                    <ul class="space-y-2 text-red-700 dark:text-red-300">
+                                        <li class="flex items-start">
+                                            <i class="fa-solid fa-times-circle mt-1 mr-3 flex-shrink-0"></i>
+                                            Full repayment is not completed within 30 days
+                                        </li>
+                                        <li class="flex items-start">
+                                            <i class="fa-solid fa-times-circle mt-1 mr-3 flex-shrink-0"></i>
+                                            Two or more scheduled payments are missed without prior notice
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <h4 class="text-gray-900 dark:text-white font-semibold mb-3">Consequences of default include:</h4>
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-hand-holding text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Seizure and permanent retention of collateral
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-money-bill-wave text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Application of penalties or recovery fees
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-file-lines text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Reporting to relevant credit reference bureaus
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-users text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Engagement of debt collection agents
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-ban text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Ineligibility for future loan applications
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Section 6: Applicant Responsibilities -->
+                        <section id="responsibilities" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">6.</span> APPLICANT RESPONSIBILITIES
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">Applicants are responsible for:</p>
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Submitting truthful and accurate information
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Ensuring collateral is legally owned and unencumbered
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Repaying the full loan within the agreed timeframe
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Cooperating during any review or recovery process
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Section 7: Privacy and Data Use -->
+                        <section id="privacy" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">7.</span> PRIVACY AND DATA USE
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-shield-alt text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Personal information is collected only for processing and managing loan applications
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-user-shield text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Data is not sold to third parties
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-share-alt text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Information may be shared with legal or recovery agents when required
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-gavel text-blue-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        All data is handled in line with applicable Malawian data protection laws
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Section 8: Loan Approval -->
+                        <section id="approval" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">8.</span> LOAN APPROVAL
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    Loan approval is based on internal evaluation criteria. Submission of an application does not guarantee approval. IRM Creditors reserves the right to approve, decline, or cancel any application at its sole discretion.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Section 9: Use of Loan Funds -->
+                        <section id="use-of-funds" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">9.</span> USE OF LOAN FUNDS
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    Loan funds must be used for lawful purposes. IRM Creditors is not liable for how the funds are used once disbursed.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Section 10: Right to Amend Terms -->
+                        <section id="amendments" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">10.</span> RIGHT TO AMEND TERMS
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    IRM Creditors may revise these Terms and Conditions at any time. Updated terms will be posted on the website or communicated directly. Continued use of services implies acceptance of the revised terms.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Section 11: Dispute Resolution -->
+                        <section id="disputes" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">11.</span> DISPUTE RESOLUTION
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    Disputes will first be addressed through IRM Creditors' internal process. If unresolved, matters may be referred to a legal mediator or handled in a court within Malawian jurisdiction.
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Section 12: Limitation of Liability -->
+                        <section id="liability" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">12.</span> LIMITATION OF LIABILITY
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">IRM Creditors is not liable for:</p>
+                                <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Indirect or incidental losses related to service use
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Delays caused by third-party payment systems
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fa-solid fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                        Service interruptions due to maintenance or technical issues
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Section 13: Entire Agreement -->
+                        <section id="agreement" class="terms-section card bg-white dark:bg-dark-800 p-8 shadow-sm">
+                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <span class="section-number">13.</span> ENTIRE AGREEMENT
+                            </h3>
+                            <div class="prose prose-gray dark:prose-invert max-w-none">
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    These Terms constitute the full and binding agreement between IRM Creditors and the applicant. No informal or verbal agreements shall be enforceable unless documented in writing.
+                                </p>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="card bg-gradient-to-r from-primary to-secondary p-8 mt-8 text-white">
+                        <div class="text-center">
+                            <h3 class="text-2xl font-bold mb-4">IRM CREDITORS</h3>
+                            <p class="text-lg mb-6">A Division of IRM Enterprise</p>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                <div class="flex flex-col items-center">
+                                    <i class="fa-solid fa-phone text-2xl mb-2"></i>
+                                    <p class="text-sm opacity-90">Phone</p>
+                                    <p class="font-medium">[Insert Number]</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <i class="fa-solid fa-envelope text-2xl mb-2"></i>
+                                    <p class="text-sm opacity-90">Email</p>
+                                    <p class="font-medium">[Insert Email]</p>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <i class="fa-solid fa-globe text-2xl mb-2"></i>
+                                    <p class="text-sm opacity-90">Website</p>
+                                    <p class="font-medium">[Insert Web Address]</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-white dark:bg-dark-800 border-t border-gray-200 dark:border-gray-700 py-8 no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        © 2023 IRM Creditors - A Division of IRM Enterprise. All rights reserved.
+                    </p>
+                    <p class="text-gray-400 dark:text-gray-500 text-xs mt-2">
+                        Last updated: <span id="lastUpdated"></span>
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Set last updated date
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+    </script>
+</body>
+</html>
+

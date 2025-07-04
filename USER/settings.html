@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #4361ee;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .setting-item {
+            transition: all 0.2s ease;
+        }
+        
+        .setting-item:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .setting-item:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        settings: {
+            notifications: {
+                email: true,
+                push: true,
+                sms: false,
+                marketing: false
+            },
+            privacy: {
+                profileVisible: true,
+                activityTracking: true,
+                dataSharing: false
+            },
+            account: {
+                twoFactor: false,
+                autoLogout: true,
+                sessionTimeout: 30
+            }
+        },
+        userProfile: {
+            name: 'John Banda',
+            phone: '+265 991 234 567',
+            email: 'john.banda@example.com',
+            address: 'Lilongwe, Area 3',
+            occupation: 'Business Owner',
+            idType: 'National ID',
+            idNumber: 'MW12345678',
+            creditScore: 720
+        },
+        notifications: [
+            { id: 1, type: 'payment', title: 'Payment Due', content: 'Payment of MK15,000 due in 3 days', time: 'Today', read: false },
+            { id: 2, type: 'approval', title: 'Loan Approved', content: 'Your loan of MK50,000 has been approved', time: '2 days ago', read: true },
+            { id: 3, type: 'offer', title: 'Special Offer', content: 'Limited time: Get 1% lower interest rate', time: '5 days ago', read: true }
+        ],
+        unreadCount: 1,
+        saveSettings() {
+            // Here you would typically send the settings to your backend
+            localStorage.setItem('userSettings', JSON.stringify(this.settings));
+            alert('Settings saved successfully!');
+        },
+        resetSettings() {
+            if (confirm('Are you sure you want to reset all settings to default?')) {
+                this.settings = {
+                    notifications: {
+                        email: true,
+                        push: true,
+                        sms: false,
+                        marketing: false
+                    },
+                    privacy: {
+                        profileVisible: true,
+                        activityTracking: true,
+                        dataSharing: false
+                    },
+                    account: {
+                        twoFactor: false,
+                        autoLogout: true,
+                        sessionTimeout: 30
+                    }
+                };
+                alert('Settings reset to default values!');
+            }
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => {
+            localStorage.setItem('darkMode', value);
+            if (value) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Load saved settings
+        const savedSettings = localStorage.getItem('userSettings');
+        if (savedSettings) {
+            this.settings = JSON.parse(savedSettings);
+        }
+    "
+    :class="{ 'dark': darkMode }">
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-gift mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                        <a href="settings.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-cog mr-3 text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-gift mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                        <a href="settings.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-cog mr-3 text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Settings</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode" title="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span x-show="unreadCount > 0" class="notification-dot"></span>
+                            </button>
+                            <div x-show="notificationsOpen" @click.away="notificationsOpen = false" class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-md shadow-lg overflow-hidden z-20" x-cloak>
+                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notifications</h3>
+                                    <p class="text-sm text-gray-500">You have <span x-text="unreadCount" class="font-medium"></span> unread notifications</p>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <template x-for="notification in notifications">
+                                        <a href="#" @click="if(!notification.read) { notification.read = true; unreadCount--; }" class="block px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <template x-if="notification.type === 'payment'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                                                            <i class="fa-solid fa-money-bill-wave"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'approval'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-500">
+                                                            <i class="fa-solid fa-check"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'offer'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                                                            <i class="fa-solid fa-gift"></i>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
+                                                    <p class="text-sm text-gray-500" x-text="notification.content"></p>
+                                                    <p class="text-xs text-gray-400 mt-1" x-text="notification.time"></p>
+                                                </div>
+                                                <div class="ml-auto" x-show="!notification.read">
+                                                    <span class="h-2 w-2 rounded-full bg-primary"></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                                <div class="p-3 bg-gray-50 dark:bg-dark-700 text-center">
+                                    <a href="#" class="text-sm font-medium text-primary hover:text-primary/80">View all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="my_profile.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Your Profile</a>
+                                <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Settings</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Page Header -->
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h2>
+                        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your account preferences and application settings</p>
+                    </div>
+
+                    <!-- Appearance Settings -->
+                    <div class="card bg-white dark:bg-dark-800 p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-palette mr-2 text-primary"></i>
+                            Appearance
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Dark Mode</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Switch between light and dark themes</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="darkMode">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="card bg-white dark:bg-dark-800 p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-bell mr-2 text-primary"></i>
+                            Notifications
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Email Notifications</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Receive notifications via email</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.notifications.email">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Push Notifications</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Receive push notifications in your browser</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.notifications.push">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">SMS Notifications</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Receive important updates via SMS</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.notifications.sms">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Marketing Communications</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Receive promotional offers and updates</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.notifications.marketing">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Settings -->
+                    <div class="card bg-white dark:bg-dark-800 p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-shield-halved mr-2 text-primary"></i>
+                            Privacy & Security
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Profile Visibility</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Make your profile visible to other users</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.privacy.profileVisible">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Activity Tracking</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Allow tracking for analytics and improvements</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.privacy.activityTracking">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Data Sharing</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Share anonymized data with partners</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.privacy.dataSharing">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Settings -->
+                    <div class="card bg-white dark:bg-dark-800 p-6 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-user-gear mr-2 text-primary"></i>
+                            Account Security
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Two-Factor Authentication</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security to your account</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.account.twoFactor">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Auto Logout</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Automatically log out after inactivity</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" x-model="settings.account.autoLogout">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="setting-item flex items-center justify-between p-3 rounded-lg">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">Session Timeout</h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Minutes of inactivity before auto logout</p>
+                                </div>
+                                <select x-model="settings.account.sessionTimeout" class="border border-gray-300 dark:border-gray-600 rounded-lg py-1 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="120">2 hours</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                        <button @click="resetSettings()" class="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                            <i class="fa-solid fa-rotate-left mr-2"></i>
+                            Reset to Default
+                        </button>
+                        <button @click="saveSettings()" class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i>
+                            Save Settings
+                        </button>
+                    </div>
+
+                    <!-- Settings Info -->
+                    <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                        <h4 class="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                            <i class="fa-solid fa-info-circle mr-2"></i>
+                            Settings Information
+                        </h4>
+                        <div class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                            <p>• Settings are automatically saved to your browser's local storage</p>
+                            <p>• Some changes may require a page refresh to take full effect</p>
+                            <p>• Contact support if you experience any issues with your settings</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
+

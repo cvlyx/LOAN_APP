@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Secure Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dark .glass {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dark .card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .auth-container {
+            min-height: 100vh;
+            background: url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80') center/cover fixed;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .auth-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 24, 38, 0.85);
+            z-index: 0;
+        }
+        
+        .dark .auth-container::before {
+            background: rgba(18, 24, 38, 0.9);
+        }
+        
+        .auth-card {
+            max-width: 420px;
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.3);
+        }
+        
+        .toggle-password {
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+        
+        .brand-section {
+            background: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80') center/cover;
+            border-radius: 16px 0 0 16px;
+            position: relative;
+        }
+        
+        .brand-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.8) 0%, rgba(63, 55, 201, 0.8) 100%);
+            z-index: 1;
+        }
+        
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(67, 97, 238, 0.15);
+        }
+        
+        @media (max-width: 1024px) {
+            .split-layout {
+                flex-direction: column;
+            }
+            
+            .brand-section {
+                border-radius: 16px 16px 0 0;
+                height: 200px;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-dark-900 text-gray-900 dark:text-white" 
+      x-data="{ 
+          darkMode: localStorage.getItem('darkMode') === 'true',
+          rememberMe: false,
+          showPassword: false
+      }" 
+      x-init="
+          $watch('darkMode', value => localStorage.setItem('darkMode', value));
+          if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+      "
+      :class="{ 'dark': darkMode }">
+    
+    <!-- Auth Container -->
+    <div class="min-h-screen flex items-center justify-center p-4 auth-container">
+        <div class="w-full max-w-5xl glass flex split-layout">
+            <!-- Brand Section -->
+            <div class="hidden md:flex w-2/5 p-8 flex-col justify-between brand-section relative">
+                <div class="z-10">
+                    <div class="flex items-center">
+                        <div class="bg-white p-3 rounded-xl">
+                            <i class="text-primary text-2xl fa-solid fa-coins"></i>
+                        </div>
+                        <span class="ml-3 text-2xl font-bold text-white">CrediTrack</span>
+                    </div>
+                    
+                    <div class="mt-12">
+                        <h2 class="text-3xl font-bold text-white mb-4">Why Choose CrediTrack?</h2>
+                        <p class="text-gray-200 mb-8">Secure, fast, and reliable financial solutions for Malawians</p>
+                        
+                        <div class="space-y-6">
+                            <div class="feature-card glass p-4 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white mr-4">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white">Bank-Level Security</h3>
+                                        <p class="text-sm text-gray-200">256-bit encryption protects your data</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card glass p-4 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white mr-4">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white">24hr Funding</h3>
+                                        <p class="text-sm text-gray-200">Get approved and funded within 24 hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-card glass p-4 rounded-xl">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white mr-4">
+                                        <i class="fas fa-headset"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-white">24/7 Support</h3>
+                                        <p class="text-sm text-gray-200">Our team is always ready to assist you</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="z-10">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
+                            <i class="fas fa-phone text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-200 text-sm">Need help?</p>
+                            <p class="text-white font-bold">+265 123 456 789</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Login Card -->
+            <div class="w-full md:w-3/5 p-6 md:p-10">
+                <!-- Header with dark mode toggle -->
+                <div class="flex justify-between items-center pb-6">
+                    <div class="flex items-center md:hidden">
+                        <div class="bg-primary p-3 rounded-xl">
+                            <i class="text-white text-xl fa-solid fa-coins"></i>
+                        </div>
+                        <span class="ml-3 text-xl font-bold text-white">CrediTrack</span>
+                    </div>
+                    
+                    <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode">
+                        <i x-show="darkMode" class="fa-solid fa-sun text-white"></i>
+                        <i x-show="!darkMode" class="fa-solid fa-moon text-white"></i>
+                    </button>
+                </div>
+                
+                <!-- Content -->
+                <div class="py-4">
+                    <h2 class="text-2xl font-bold text-center text-white mb-2">Welcome Back</h2>
+                    <p class="text-gray-300 text-center mb-8">Sign in to manage your collateral loans</p>
+                    
+                    <!-- Login Form -->
+                    <form @submit.prevent="window.location.href='../standalone_loan_dashboard/dashboard.html'">
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-envelope text-gray-400"></i>
+                                </div>
+                                <input 
+                                    type="email" 
+                                    required 
+                                    class="w-full pl-10 pr-3 py-3 border border-gray-300/20 bg-gray-100/5 rounded-lg focus:outline-none input-focus text-white placeholder-gray-400" 
+                                    placeholder="you@company.com"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="mb-5">
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-lock text-gray-400"></i>
+                                </div>
+                                <input 
+                                    :type="showPassword ? 'text' : 'password'" 
+                                    required 
+                                    class="w-full pl-10 pr-10 py-3 border border-gray-300/20 bg-gray-100/5 rounded-lg focus:outline-none input-focus text-white placeholder-gray-400" 
+                                    placeholder="••••••••"
+                                >
+                                <button 
+                                    type="button" 
+                                    @click="showPassword = !showPassword"
+                                    class="absolute toggle-password text-gray-400 hover:text-gray-200"
+                                    :title="showPassword ? 'Hide password' : 'Show password'"
+                                    aria-label="Toggle password visibility"
+                                >
+                                    <i :class="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center">
+                                <input 
+                                    id="remember" 
+                                    type="checkbox" 
+                                    x-model="rememberMe"
+                                    class="h-4 w-4 text-primary focus:ring-primary border-gray-300/30 rounded bg-gray-100/5"
+                                >
+                                <label for="remember" class="ml-2 block text-sm text-gray-300">Remember me</label>
+                            </div>
+                            <a href="#" class="text-sm text-primary font-medium hover:text-primary/80">Forgot password?</a>
+                        </div>
+                        
+                        <button 
+                            type="submit" 
+                            class="w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg font-medium transition duration-300 shadow-lg"
+                        >
+                            Sign In
+                        </button>
+                        
+                        <div class="mt-6 text-center text-sm text-gray-300">
+                            Don't have an account? 
+                            <a 
+                                href="signup.html" 
+                                class="text-primary font-medium hover:text-primary/80"
+                            >
+                                Sign up
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Footer -->
+                <div class="pt-6 text-center text-sm text-gray-400 border-t border-gray-300/10">
+                    © 2023 CrediTrack. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Handle form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    // In a real application, you would validate credentials here
+                    window.location.href = '../standalone_loan_dashboard/dashboard.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

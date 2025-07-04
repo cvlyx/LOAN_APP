@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Admin Dashboard - Reports</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.2);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dasharray 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        /* Responsive enhancements */
+        @media (max-width: 768px) {
+            .hidden-mobile {
+                display: none !important;
+            }
+            
+            .mobile-full-width {
+                width: 100% !important;
+            }
+            
+            .mobile-stack {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .mobile-padding {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-center {
+                text-align: center !important;
+            }
+            
+            .mobile-card-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .tablet-grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        currentView: 'reports',
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        showLoanModal: false,
+        showUserModal: false,
+        showSettingsModal: false,
+        selectedLoan: null,
+        selectedUser: null,
+        loanFilter: 'all',
+        userFilter: 'all',
+        applicationFilter: 'pending',
+        searchQuery: '',
+        bulkSelected: [],
+        notifications: [
+            { id: 1, type: 'urgent', title: 'High Risk Application', content: 'Loan application L-10250 requires immediate review', time: '5 min ago', read: false },
+            { id: 2, type: 'payment', title: 'Payment Overdue', content: '15 borrowers have overdue payments', time: '1 hour ago', read: false },
+            { id: 3, type: 'system', title: 'System Backup Complete', content: 'Daily backup completed successfully', time: '2 hours ago', read: true }
+        ],
+        unreadCount: 2,
+        loans: [
+            { id: 'L-10245', borrower: 'John Banda', amount: 'MK50,000', interest: '15%', disbursed: '2023-06-15', due: '2023-12-15', status: 'active', risk: 'low', payments: 6, totalPayments: 12, nextPayment: '2023-09-15' },
+            { id: 'L-10246', borrower: 'Mary Phiri', amount: 'MK25,000', interest: '12%', disbursed: '2023-07-01', due: '2024-01-01', status: 'pending', risk: 'medium', payments: 0, totalPayments: 6, nextPayment: '2023-10-01' },
+            { id: 'L-10247', borrower: 'Peter Mwale', amount: 'MK75,000', interest: '18%', disbursed: '2023-05-20', due: '2023-11-20', status: 'overdue', risk: 'high', payments: 8, totalPayments: 12, nextPayment: '2023-08-20' },
+            { id: 'L-10248', borrower: 'Grace Tembo', amount: 'MK100,000', interest: '20%', disbursed: '2023-04-05', due: '2024-04-05', status: 'approved', risk: 'low', payments: 0, totalPayments: 24, nextPayment: '2023-09-05' },
+            { id: 'L-10249', borrower: 'James Kachala', amount: 'MK30,000', interest: '14%', disbursed: '2023-08-01', due: '2024-02-01', status: 'active', risk: 'medium', payments: 2, totalPayments: 6, nextPayment: '2023-10-01' }
+        ],
+        users: [
+            { id: 'U-001', name: 'John Banda', email: 'john.banda@example.com', phone: '+265 991 234 567', status: 'active', creditScore: 720, totalLoans: 3, joinDate: '2022-01-15', lastLogin: '2023-08-15' },
+            { id: 'U-002', name: 'Mary Phiri', email: 'mary.phiri@example.com', phone: '+265 992 345 678', status: 'active', creditScore: 680, totalLoans: 1, joinDate: '2022-03-20', lastLogin: '2023-08-14' },
+            { id: 'U-003', name: 'Peter Mwale', email: 'peter.mwale@example.com', phone: '+265 993 456 789', status: 'suspended', creditScore: 580, totalLoans: 2, joinDate: '2021-11-10', lastLogin: '2023-07-30' },
+            { id: 'U-004', name: 'Grace Tembo', email: 'grace.tembo@example.com', phone: '+265 994 567 890', status: 'active', creditScore: 750, totalLoans: 1, joinDate: '2023-01-05', lastLogin: '2023-08-15' },
+            { id: 'U-005', name: 'James Kachala', email: 'james.kachala@example.com', phone: '+265 995 678 901', status: 'pending', creditScore: 650, totalLoans: 0, joinDate: '2023-08-01', lastLogin: '2023-08-10' }
+        ],
+        applications: [
+            { id: 'A-001', borrower: 'Sarah Nyirenda', amount: 'MK40,000', purpose: 'Business', creditScore: 690, riskLevel: 'medium', submittedDate: '2023-08-14', documents: ['ID', 'Payslip', 'Bank Statement'], status: 'pending' },
+            { id: 'A-002', borrower: 'David Chirwa', amount: 'MK80,000', purpose: 'Agriculture', creditScore: 720, riskLevel: 'low', submittedDate: '2023-08-13', documents: ['ID', 'Land Title', 'Farm Records'], status: 'pending' },
+            { id: 'A-003', borrower: 'Ruth Banda', amount: 'MK15,000', purpose: 'Education', creditScore: 640, riskLevel: 'medium', submittedDate: '2023-08-12', documents: ['ID', 'School Letter'], status: 'under_review' },
+            { id: 'A-004', borrower: 'Michael Phiri', amount: 'MK120,000', purpose: 'Business', creditScore: 580, riskLevel: 'high', submittedDate: '2023-08-11', documents: ['ID', 'Business Plan'], status: 'pending' }
+        ],
+        systemStats: {
+            totalLoans: 1247,
+            activeLoans: 892,
+            totalUsers: 2156,
+            pendingApplications: 47,
+            totalRevenue: 'MK12,450,000',
+            defaultRate: '3.2%',
+            avgLoanAmount: 'MK45,000',
+            approvalRate: '78%'
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+    "
+    :class="{ 'dark': darkMode }">
+    
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" @click="currentView = 'dashboard'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'dashboard'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" @click="currentView = 'loans'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'loans'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" @click="currentView = 'users'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'users'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" @click="currentView = 'applications'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'applications'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" @click="currentView = 'payments'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'payments'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" @click="currentView = 'reports'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'reports'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" @click="currentView = 'settings'; sidebarOpen = false" :class="{'bg-primary/10 text-primary': currentView === 'settings'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" @click="currentView = 'dashboard'" :class="{'bg-primary/10 text-primary': currentView === 'dashboard'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" @click="currentView = 'loans'" :class="{'bg-primary/10 text-primary': currentView === 'loans'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" @click="currentView = 'users'" :class="{'bg-primary/10 text-primary': currentView === 'users'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" @click="currentView = 'applications'" :class="{'bg-primary/10 text-primary': currentView === 'applications'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" @click="currentView = 'payments'" :class="{'bg-primary/10 text-primary': currentView === 'payments'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" @click="currentView = 'reports'" :class="{'bg-primary/10 text-primary': currentView === 'reports'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" @click="currentView = 'settings'" :class="{'bg-primary/10 text-primary': currentView === 'settings'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4 mobile-padding">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white" x-text="
+                                currentView === 'dashboard' ? 'Admin Dashboard' :
+                                currentView === 'loans' ? 'Loan Management' :
+                                currentView === 'users' ? 'User Management' :
+                                currentView === 'applications' ? 'Application Review' :
+                                currentView === 'payments' ? 'Payment Management' :
+                                currentView === 'reports' ? 'Reports & Analytics' :
+                                currentView === 'settings' ? 'System Settings' : 'Admin Dashboard'
+                            "></h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span x-show="unreadCount > 0" class="notification-dot"></span>
+                            </button>
+                            <div x-show="notificationsOpen" @click.away="notificationsOpen = false" class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-md shadow-lg overflow-hidden z-20" x-cloak>
+                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notifications</h3>
+                                    <p class="text-sm text-gray-500">You have <span x-text="unreadCount"></span> unread notifications</p>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <template x-for="notification in notifications">
+                                        <a href="#" @click="if(!notification.read) { notification.read = true; unreadCount--; }" class="block px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <template x-if="notification.type === 'urgent'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-red-100 text-red-500">
+                                                            <i class="fa-solid fa-exclamation-triangle"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'payment'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                                                            <i class="fa-solid fa-money-bill-wave"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'system'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                                                            <i class="fa-solid fa-cog"></i>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
+                                                    <p class="text-sm text-gray-500" x-text="notification.content"></p>
+                                                    <p class="text-xs text-gray-400 mt-1" x-text="notification.time"></p>
+                                                </div>
+                                                <div class="ml-auto" x-show="!notification.read">
+                                                    <span class="h-2 w-2 rounded-full bg-primary"></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                                <div class="p-3 bg-gray-50 dark:bg-dark-700 text-center">
+                                    <a href="#" class="text-sm font-medium text-primary hover:text-primary/80">View all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Admin Profile</a>
+                                <a href="settings.html" @click="currentView = 'settings'" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">System Settings</a>
+                                <a href="../loan_dashboard/index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Borrower View</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900 mobile-padding">
+                <!-- Reports View -->
+                <div x-show="currentView === 'reports'">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Generate comprehensive reports and insights</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Revenue Chart -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <div class="flex items-center justify-between mb-4 mobile-stack">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Revenue Trends</h3>
+                                <select class="text-xs px-3 py-1 bg-gray-100 dark:bg-dark-700 rounded-lg border-0">
+                                    <option>Last 12 months</option>
+                                    <option>Last 6 months</option>
+                                    <option>Last 3 months</option>
+                                </select>
+                            </div>
+                            <div class="h-80">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Loan Distribution -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Loan Distribution by Purpose</h3>
+                            <div class="h-80">
+                                <canvas id="loanDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Report Generation -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Financial Reports</h3>
+                            <div class="space-y-3">
+                                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-chart-line mr-2"></i> Revenue Report
+                                </button>
+                                <button class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-money-bill-wave mr-2"></i> Payment Report
+                                </button>
+                                <button class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-file-invoice-dollar mr-2"></i> Loan Portfolio
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Risk Reports</h3>
+                            <div class="space-y-3">
+                                <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-exclamation-triangle mr-2"></i> Default Analysis
+                                </button>
+                                <button class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-shield-alt mr-2"></i> Risk Assessment
+                                </button>
+                                <button class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-chart-pie mr-2"></i> Credit Score Distribution
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Operational Reports</h3>
+                            <div class="space-y-3">
+                                <button class="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-users mr-2"></i> User Activity
+                                </button>
+                                <button class="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-clipboard-check mr-2"></i> Application Trends
+                                </button>
+                                <button class="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-cog mr-2"></i> System Performance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loan Details Modal -->
+    <div x-show="showLoanModal" x-cloak class="fixed z-50 inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="showLoanModal = false"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl w-full">
+                <div class="bg-white dark:bg-dark-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4" x-text="selectedLoan ? 'Loan Details - ' + selectedLoan.id : 'Loan Details'">
+                            </h3>
+                            <div x-show="selectedLoan" class="mt-2 space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Borrower</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.borrower"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.amount"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Interest Rate</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.interest"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.status"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Disbursed Date</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.disbursed"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Due Date</label>
+                                        <p class="text-sm text-gray-900 dark:text-white" x-text="selectedLoan?.due"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="showLoanModal = false" class="w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Loan Performance Chart
+            const loanCtx = document.getElementById('loanPerformanceChart').getContext('2d');
+            const loanChart = new Chart(loanCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                    datasets: [{
+                        label: 'Loans Disbursed',
+                        data: [45, 52, 48, 61, 55, 67, 73, 69],
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Loans Repaid',
+                        data: [38, 45, 42, 48, 51, 58, 62, 65],
+                        borderColor: '#4ade80',
+                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Revenue Chart
+            if (document.getElementById('revenueChart')) {
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                const revenueChart = new Chart(revenueCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                        datasets: [{
+                            label: 'Revenue (MK)',
+                            data: [850000, 920000, 780000, 1100000, 950000, 1200000, 1350000, 1180000],
+                            backgroundColor: '#4361ee',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return 'MK' + (value / 1000) + 'K';
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Loan Distribution Chart
+            if (document.getElementById('loanDistributionChart')) {
+                const distributionCtx = document.getElementById('loanDistributionChart').getContext('2d');
+                const distributionChart = new Chart(distributionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Business', 'Personal', 'Education', 'Agriculture', 'Medical'],
+                        datasets: [{
+                            data: [35, 25, 15, 20, 5],
+                            backgroundColor: [
+                                '#4361ee',
+                                '#4ade80',
+                                '#fbbf24',
+                                '#f87171',
+                                '#60a5fa'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

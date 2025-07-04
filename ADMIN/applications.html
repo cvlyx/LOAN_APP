@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Application Review</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.2);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dasharray 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .document-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .document-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Responsive enhancements */
+        @media (max-width: 768px) {
+            .hidden-mobile {
+                display: none !important;
+            }
+            
+            .mobile-full-width {
+                width: 100% !important;
+            }
+            
+            .mobile-stack {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .mobile-padding {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-center {
+                text-align: center !important;
+            }
+            
+            .mobile-card-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .tablet-grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        currentView: 'applications',
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        selectedApplication: null,
+        showImageModal: false,
+        selectedImage: '',
+        applications: [
+            { 
+                id: 'A-001', 
+                borrower: 'Sarah Nyirenda', 
+                amount: 'MK40,000', 
+                purpose: 'Business', 
+                creditScore: 690, 
+                riskLevel: 'medium', 
+                submittedDate: '2023-08-14', 
+                documents: ['ID', 'Payslip', 'Bank Statement'], 
+                status: 'pending',
+                loanTerm: '12 months',
+                interestRate: '15%',
+                weeklyPayment: 'MK3,846',
+                uploadedFiles: [
+                    { name: 'National_ID.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/4361ee/ffffff?text=National+ID' },
+                    { name: 'Payslip.pdf', type: 'pdf', url: 'https://via.placeholder.com/300x200/f87171/ffffff?text=Payslip+PDF' },
+                    { name: 'Bank_Statement.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/4ade80/ffffff?text=Bank+Statement' }
+                ]
+            },
+            { 
+                id: 'A-002', 
+                borrower: 'David Chirwa', 
+                amount: 'MK80,000', 
+                purpose: 'Agriculture', 
+                creditScore: 720, 
+                riskLevel: 'low', 
+                submittedDate: '2023-08-13', 
+                documents: ['ID', 'Land Title', 'Farm Records'], 
+                status: 'pending',
+                loanTerm: '24 months',
+                interestRate: '12%',
+                weeklyPayment: 'MK4,000',
+                uploadedFiles: [
+                    { name: 'National_ID.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/4361ee/ffffff?text=National+ID' },
+                    { name: 'Land_Title.pdf', type: 'pdf', url: 'https://via.placeholder.com/300x200/f87171/ffffff?text=Land+Title+PDF' },
+                    { name: 'Farm_Records.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/fbbf24/ffffff?text=Farm+Records' }
+                ]
+            },
+            { 
+                id: 'A-003', 
+                borrower: 'Ruth Banda', 
+                amount: 'MK15,000', 
+                purpose: 'Education', 
+                creditScore: 640, 
+                riskLevel: 'medium', 
+                submittedDate: '2023-08-12', 
+                documents: ['ID', 'School Letter'], 
+                status: 'under_review',
+                loanTerm: '6 months',
+                interestRate: '18%',
+                weeklyPayment: 'MK2,885',
+                uploadedFiles: [
+                    { name: 'National_ID.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/4361ee/ffffff?text=National+ID' },
+                    { name: 'School_Letter.pdf', type: 'pdf', url: 'https://via.placeholder.com/300x200/60a5fa/ffffff?text=School+Letter+PDF' }
+                ]
+            },
+            { 
+                id: 'A-004', 
+                borrower: 'Michael Phiri', 
+                amount: 'MK120,000', 
+                purpose: 'Business', 
+                creditScore: 580, 
+                riskLevel: 'high', 
+                submittedDate: '2023-08-11', 
+                documents: ['ID', 'Business Plan'], 
+                status: 'pending',
+                loanTerm: '18 months',
+                interestRate: '22%',
+                weeklyPayment: 'MK8,077',
+                uploadedFiles: [
+                    { name: 'National_ID.jpg', type: 'image', url: 'https://via.placeholder.com/300x200/4361ee/ffffff?text=National+ID' },
+                    { name: 'Business_Plan.pdf', type: 'pdf', url: 'https://via.placeholder.com/300x200/f87171/ffffff?text=Business+Plan+PDF' }
+                ]
+            }
+        ],
+        applicationFilter: 'pending',
+        systemStats: {
+            pendingApplications: 47,
+        },
+        viewApplication(application) {
+            this.selectedApplication = application;
+        },
+        closeApplicationView() {
+            this.selectedApplication = null;
+        },
+        openImageModal(imageUrl) {
+            this.selectedImage = imageUrl;
+            this.showImageModal = true;
+        },
+        closeImageModal() {
+            this.showImageModal = false;
+            this.selectedImage = '';
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+    "
+    :class="{ 'dark': darkMode }">
+    
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" :class="{'bg-primary/10 text-primary': currentView === 'applications'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" :class="{'bg-primary/10 text-primary': currentView === 'applications'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4 mobile-padding">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Application Review</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Admin Profile</a>
+                                <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">System Settings</a>
+                                <a href="../loan_dashboard/index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Borrower View</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900 mobile-padding">
+                <!-- Application Review View -->
+                <div x-show="currentView === 'applications' && !selectedApplication">
+                    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between mobile-stack">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-0">Application Review</h2>
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                            <select x-model="applicationFilter" class="border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white mobile-full-width">
+                                <option value="pending">Pending Review</option>
+                                <option value="under_review">Under Review</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center mobile-full-width">
+                                <i class="fa-solid fa-check mr-2"></i> Bulk Approve
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <template x-for="application in applications.filter(a => a.status === applicationFilter)" :key="application.id">
+                            <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                                <div class="flex items-center justify-between mb-4 mobile-stack">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white" x-text="application.borrower"></h3>
+                                    <template x-if="application.riskLevel === 'low'">
+                                        <span class="status-badge bg-green-100 text-green-800">Low Risk</span>
+                                    </template>
+                                    <template x-if="application.riskLevel === 'medium'">
+                                        <span class="status-badge bg-yellow-100 text-yellow-800">Medium Risk</span>
+                                    </template>
+                                    <template x-if="application.riskLevel === 'high'">
+                                        <span class="status-badge bg-red-100 text-red-800">High Risk</span>
+                                    </template>
+                                </div>
+                                
+                                <div class="space-y-3 mb-4">
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">Amount:</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="application.amount"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">Purpose:</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="application.purpose"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">Credit Score:</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="application.creditScore"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-sm text-gray-600 dark:text-gray-300">Submitted:</span>
+                                        <span class="text-sm font-medium text-gray-900 dark:text-white" x-text="application.submittedDate"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Documents</h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="doc in application.documents">
+                                            <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded" x-text="doc"></span>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex space-x-2">
+                                    <button class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                                        <i class="fa-solid fa-check mr-1"></i> Approve
+                                    </button>
+                                    <button class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                                        <i class="fa-solid fa-times mr-1"></i> Reject
+                                    </button>
+                                    <button @click="viewApplication(application)" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Application Summary -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                        <div class="card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm text-center">
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white" x-text="applications.length"></div>
+                            <div class="text-sm text-gray-500">Total Applications</div>
+                        </div>
+                        <div class="card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm text-center">
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white" x-text="applications.filter(a => a.status === 'pending').length"></div>
+                            <div class="text-sm text-gray-500">Pending Review</div>
+                        </div>
+                        <div class="card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm text-center">
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white" x-text="applications.filter(a => a.riskLevel === 'high').length"></div>
+                            <div class="text-sm text-gray-500">High Risk</div>
+                        </div>
+                        <div class="card bg-white dark:bg-dark-800 p-5 rounded-xl shadow-sm text-center">
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">78%</div>
+                            <div class="text-sm text-gray-500">Approval Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Application View -->
+                <div x-show="selectedApplication" x-cloak>
+                    <div class="mb-6 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button @click="closeApplicationView()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Application Details</h2>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                <i class="fa-solid fa-check mr-2"></i> Approve
+                            </button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                                <i class="fa-solid fa-times mr-2"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Loan Summary -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                <i class="fa-solid fa-file-invoice-dollar mr-2 text-primary"></i>
+                                Loan Summary
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Amount:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedApplication?.amount"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Loan Term:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedApplication?.loanTerm"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Interest Rate:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedApplication?.interestRate"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-gray-600 dark:text-gray-300">Weekly Payment:</span>
+                                    <span class="font-semibold text-primary text-lg" x-text="selectedApplication?.weeklyPayment"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <h4 class="font-medium text-blue-900 dark:text-blue-100 mb-2">Additional Information</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700 dark:text-blue-300">Purpose:</span>
+                                        <span class="text-blue-900 dark:text-blue-100" x-text="selectedApplication?.purpose"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700 dark:text-blue-300">Credit Score:</span>
+                                        <span class="text-blue-900 dark:text-blue-100" x-text="selectedApplication?.creditScore"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-blue-700 dark:text-blue-300">Risk Level:</span>
+                                        <span class="text-blue-900 dark:text-blue-100 capitalize" x-text="selectedApplication?.riskLevel"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Uploaded Documents -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                <i class="fa-solid fa-folder-open mr-2 text-primary"></i>
+                                Uploaded Documents
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <template x-for="file in selectedApplication?.uploadedFiles" :key="file.name">
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors">
+                                        <template x-if="file.type === 'image'">
+                                            <div>
+                                                <img :src="file.url" :alt="file.name" class="document-thumbnail w-full h-20 object-cover rounded mb-2" @click="openImageModal(file.url)">
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 truncate" x-text="file.name"></p>
+                                            </div>
+                                        </template>
+                                        <template x-if="file.type === 'pdf'">
+                                            <div class="text-center">
+                                                <div class="w-full h-20 bg-red-100 dark:bg-red-900/30 rounded flex items-center justify-center mb-2 cursor-pointer hover:bg-red-200 dark:hover:bg-red-900/50">
+                                                    <i class="fa-solid fa-file-pdf text-red-500 text-2xl"></i>
+                                                </div>
+                                                <p class="text-xs text-gray-600 dark:text-gray-300 truncate" x-text="file.name"></p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-gray-50 dark:bg-dark-700 rounded-lg">
+                                <p class="text-sm text-gray-600 dark:text-gray-300">
+                                    <i class="fa-solid fa-info-circle mr-1"></i>
+                                    Click on images to view in full size. PDF documents can be downloaded for review.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Applicant Information -->
+                    <div class="mt-6 card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-user mr-2 text-primary"></i>
+                            Applicant Information
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">Personal Details</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Name:</span>
+                                        <span class="text-gray-900 dark:text-white" x-text="selectedApplication?.borrower"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Application ID:</span>
+                                        <span class="text-gray-900 dark:text-white" x-text="selectedApplication?.id"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Submitted:</span>
+                                        <span class="text-gray-900 dark:text-white" x-text="selectedApplication?.submittedDate"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">Financial Profile</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Credit Score:</span>
+                                        <span class="text-gray-900 dark:text-white" x-text="selectedApplication?.creditScore"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Risk Assessment:</span>
+                                        <span class="text-gray-900 dark:text-white capitalize" x-text="selectedApplication?.riskLevel"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">Application Status</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Current Status:</span>
+                                        <span class="text-gray-900 dark:text-white capitalize" x-text="selectedApplication?.status.replace('_', ' ')"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Documents:</span>
+                                        <span class="text-gray-900 dark:text-white" x-text="selectedApplication?.documents.length + ' files'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div x-show="showImageModal" x-cloak class="modal-overlay" @click="closeImageModal()">
+        <div class="modal-content" @click.stop>
+            <div class="modal-close" @click="closeImageModal()">
+                <i class="fa-solid fa-times"></i>
+            </div>
+            <img :src="selectedImage" alt="Document" class="modal-image">
+        </div>
+    </div>
+
+    <script>
+        // No charts specific to applications in the provided snippet
+    </script>
+</body>
+</html>

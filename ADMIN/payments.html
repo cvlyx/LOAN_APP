@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Payment Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.2);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dasharray 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        
+        .receipt-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .receipt-thumbnail:hover {
+            transform: scale(1.05);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Responsive enhancements */
+        @media (max-width: 768px) {
+            .hidden-mobile {
+                display: none !important;
+            }
+            
+            .mobile-full-width {
+                width: 100% !important;
+            }
+            
+            .mobile-stack {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .mobile-padding {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-center {
+                text-align: center !important;
+            }
+            
+            .mobile-card-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .tablet-grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 10px;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        currentView: 'payments',
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        selectedPayment: null,
+        showReceiptModal: false,
+        selectedReceipt: '',
+        notifications: [
+            { id: 1, type: 'urgent', title: 'High Risk Application', content: 'Loan application L-10250 requires immediate review', time: '5 min ago', read: false },
+            { id: 2, type: 'payment', title: 'Payment Overdue', content: '15 borrowers have overdue payments', time: '1 hour ago', read: false },
+            { id: 3, type: 'system', title: 'System Backup Complete', content: 'Daily backup completed successfully', time: '2 hours ago', read: true }
+        ],
+        unreadCount: 2,
+        payments: [
+            { 
+                id: 'P-001', 
+                date: '2023-08-15 14:30', 
+                borrower: 'John Banda', 
+                loanId: 'L-10245', 
+                amount: 'MK15,000', 
+                method: 'Airtel Money', 
+                status: 'Completed',
+                proofType: 'receipt',
+                receiptUrl: 'https://via.placeholder.com/400x600/4361ee/ffffff?text=Airtel+Money+Receipt',
+                transactionId: 'AM123456789'
+            },
+            { 
+                id: 'P-002', 
+                date: '2023-08-15 11:15', 
+                borrower: 'Grace Tembo', 
+                loanId: 'L-10248', 
+                amount: 'MK25,000', 
+                method: 'Standard Bank', 
+                status: 'Completed',
+                proofType: 'receipt',
+                receiptUrl: 'https://via.placeholder.com/400x600/4ade80/ffffff?text=Bank+Transfer+Receipt',
+                transactionId: 'SB987654321'
+            },
+            { 
+                id: 'P-003', 
+                date: '2023-08-14 16:45', 
+                borrower: 'James Kachala', 
+                loanId: 'L-10249', 
+                amount: 'MK8,000', 
+                method: 'TNM Mpamba', 
+                status: 'Pending',
+                proofType: 'receipt',
+                receiptUrl: 'https://via.placeholder.com/400x600/fbbf24/ffffff?text=TNM+Mpamba+Receipt',
+                transactionId: 'MP456789123'
+            },
+            { 
+                id: 'P-004', 
+                date: '2023-08-14 09:30', 
+                borrower: 'Mary Phiri', 
+                loanId: 'L-10250', 
+                amount: 'MK12,000', 
+                method: 'Cash', 
+                status: 'Completed',
+                proofType: 'date',
+                paymentDate: '2023-08-14',
+                collectedBy: 'Agent Smith'
+            },
+            { 
+                id: 'P-005', 
+                date: '2023-08-13 15:20', 
+                borrower: 'Peter Mwale', 
+                loanId: 'L-10251', 
+                amount: 'MK18,500', 
+                method: 'Cash', 
+                status: 'Completed',
+                proofType: 'date',
+                paymentDate: '2023-08-13',
+                collectedBy: 'Agent Johnson'
+            },
+            { 
+                id: 'P-006', 
+                date: '2023-08-13 12:10', 
+                borrower: 'Sarah Nyirenda', 
+                loanId: 'L-10252', 
+                amount: 'MK22,000', 
+                method: 'National Bank', 
+                status: 'Completed',
+                proofType: 'receipt',
+                receiptUrl: 'https://via.placeholder.com/400x600/60a5fa/ffffff?text=National+Bank+Receipt',
+                transactionId: 'NB789123456'
+            }
+        ],
+        viewPayment(payment) {
+            this.selectedPayment = payment;
+        },
+        closePaymentView() {
+            this.selectedPayment = null;
+        },
+        openReceiptModal(receiptUrl) {
+            this.selectedReceipt = receiptUrl;
+            this.showReceiptModal = true;
+        },
+        closeReceiptModal() {
+            this.showReceiptModal = false;
+            this.selectedReceipt = '';
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+    "
+    :class="{ 'dark': darkMode }">
+    
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" :class="{'bg-primary/10 text-primary': currentView === 'payments'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-shield-halved"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">Admin Panel</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-line mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="loan_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Loan Management
+                        </a>
+                        <a href="user_management.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-users mr-3 text-gray-500 group-hover:text-primary"></i>
+                            User Management
+                        </a>
+                        <a href="applications.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-clipboard-check mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Applications
+                        </a>
+                        <a href="payments.html" :class="{'bg-primary/10 text-primary': currentView === 'payments'}" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payments
+                        </a>
+                        <a href="reports.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-chart-bar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Reports
+                        </a>
+                        <a href="settings.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-cog mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4 mobile-padding">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Management</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span x-show="unreadCount > 0" class="notification-dot"></span>
+                            </button>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=Admin+User&background=4361ee&color=fff" alt="Admin User">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Admin Profile</a>
+                                <a href="settings.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">System Settings</a>
+                                <a href="../loan_dashboard/index.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Borrower View</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900 mobile-padding">
+                <!-- Payment Management View -->
+                <div x-show="currentView === 'payments' && !selectedPayment">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Payment Management</h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Monitor payments and manage collections</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Overview</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">Today's Collections</span>
+                                    <span class="text-lg font-bold text-green-600">MK125,000</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">This Month</span>
+                                    <span class="text-lg font-bold text-blue-600">MK2,450,000</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">Overdue Amount</span>
+                                    <span class="text-lg font-bold text-red-600">MK180,000</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Methods</h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-mobile-screen text-blue-500 mr-2"></i>
+                                        <span class="text-sm">Airtel Money</span>
+                                    </div>
+                                    <span class="text-sm font-medium">45%</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-mobile text-green-500 mr-2"></i>
+                                        <span class="text-sm">TNM Mpamba</span>
+                                    </div>
+                                    <span class="text-sm font-medium">30%</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-building-columns text-purple-500 mr-2"></i>
+                                        <span class="text-sm">Bank Transfer</span>
+                                    </div>
+                                    <span class="text-sm font-medium">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Collection Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-bell mr-2"></i> Send Payment Reminders
+                                </button>
+                                <button class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-exclamation-triangle mr-2"></i> Overdue Notices
+                                </button>
+                                <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm">
+                                    <i class="fa-solid fa-download mr-2"></i> Export Payment Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Payments Table -->
+                    <div class="card bg-white dark:bg-dark-800 rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Payments</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-dark-700">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Borrower</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Loan ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Method</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Proof</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-dark-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    <template x-for="payment in payments" :key="payment.id">
+                                        <tr class="table-row">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" x-text="payment.date"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" x-text="payment.borrower"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white" x-text="payment.loanId"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white" x-text="payment.amount"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400" x-text="payment.method"></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <template x-if="payment.proofType === 'receipt'">
+                                                    <div class="flex items-center space-x-2">
+                                                        <img :src="payment.receiptUrl" alt="Receipt" class="receipt-thumbnail" @click="openReceiptModal(payment.receiptUrl)">
+                                                        <span class="text-xs text-gray-500">Receipt</span>
+                                                    </div>
+                                                </template>
+                                                <template x-if="payment.proofType === 'date'">
+                                                    <div class="flex items-center space-x-2">
+                                                        <i class="fa-solid fa-calendar text-blue-500"></i>
+                                                        <div class="text-xs">
+                                                            <div class="font-medium text-gray-900 dark:text-white" x-text="payment.paymentDate"></div>
+                                                            <div class="text-gray-500" x-text="'By: ' + payment.collectedBy"></div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <template x-if="payment.status === 'Completed'">
+                                                    <span class="status-badge bg-green-100 text-green-800">Completed</span>
+                                                </template>
+                                                <template x-if="payment.status === 'Pending'">
+                                                    <span class="status-badge bg-yellow-100 text-yellow-800">Pending</span>
+                                                </template>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <button @click="viewPayment(payment)" class="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-xs">
+                                                    <i class="fa-solid fa-eye mr-1"></i> View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Payment View -->
+                <div x-show="selectedPayment" x-cloak>
+                    <div class="mb-6 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <button @click="closePaymentView()" class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Payment Details</h2>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                <i class="fa-solid fa-check mr-2"></i> Verify Payment
+                            </button>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                                <i class="fa-solid fa-times mr-2"></i> Flag Payment
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Payment Information -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                <i class="fa-solid fa-money-bill-transfer mr-2 text-primary"></i>
+                                Payment Information
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Payment ID:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.id"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Borrower:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.borrower"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Loan ID:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.loanId"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Amount:</span>
+                                    <span class="font-semibold text-primary text-lg" x-text="selectedPayment?.amount"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                    <span class="text-gray-600 dark:text-gray-300">Payment Method:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.method"></span>
+                                </div>
+                                <div class="flex justify-between items-center py-2">
+                                    <span class="text-gray-600 dark:text-gray-300">Date & Time:</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.date"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proof of Payment -->
+                        <div class="card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                <i class="fa-solid fa-receipt mr-2 text-primary"></i>
+                                Proof of Payment
+                            </h3>
+                            
+                            <template x-if="selectedPayment?.proofType === 'receipt'">
+                                <div>
+                                    <div class="mb-4">
+                                        <img :src="selectedPayment?.receiptUrl" alt="Payment Receipt" class="w-full max-w-sm mx-auto rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer" @click="openReceiptModal(selectedPayment?.receiptUrl)">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Transaction ID:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white" x-text="selectedPayment?.transactionId"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Receipt Type:</span>
+                                            <span class="font-medium text-gray-900 dark:text-white">Digital Receipt</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                        <p class="text-sm text-blue-700 dark:text-blue-300">
+                                            <i class="fa-solid fa-info-circle mr-1"></i>
+                                            Click on the receipt image to view in full size for verification.
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                            
+                            <template x-if="selectedPayment?.proofType === 'date'">
+                                <div>
+                                    <div class="text-center mb-6">
+                                        <div class="w-24 h-24 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <i class="fa-solid fa-calendar-check text-green-600 text-3xl"></i>
+                                        </div>
+                                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Cash Payment</h4>
+                                        <p class="text-gray-500 dark:text-gray-400">Payment collected in person</p>
+                                    </div>
+                                    
+                                    <div class="space-y-4">
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                            <span class="text-gray-600 dark:text-gray-300">Payment Date:</span>
+                                            <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.paymentDate"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-700">
+                                            <span class="text-gray-600 dark:text-gray-300">Collected By:</span>
+                                            <span class="font-semibold text-gray-900 dark:text-white" x-text="selectedPayment?.collectedBy"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-2">
+                                            <span class="text-gray-600 dark:text-gray-300">Collection Method:</span>
+                                            <span class="font-semibold text-gray-900 dark:text-white">In-Person Cash</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                        <p class="text-sm text-green-700 dark:text-green-300">
+                                            <i class="fa-solid fa-shield-check mr-1"></i>
+                                            Cash payment verified by authorized collection agent.
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Additional Payment Details -->
+                    <div class="mt-6 card bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            <i class="fa-solid fa-clipboard-list mr-2 text-primary"></i>
+                            Payment History & Notes
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">Payment Status</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Current Status:</span>
+                                        <span class="font-medium" :class="selectedPayment?.status === 'Completed' ? 'text-green-600' : 'text-yellow-600'" x-text="selectedPayment?.status"></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600 dark:text-gray-300">Verification:</span>
+                                        <span class="font-medium text-blue-600">Pending Review</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-gray-900 dark:text-white mb-2">Admin Notes</h4>
+                                <textarea class="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-dark-700 text-gray-900 dark:text-white text-sm" rows="3" placeholder="Add verification notes or comments..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div x-show="showReceiptModal" x-cloak class="modal-overlay" @click="closeReceiptModal()">
+        <div class="modal-content" @click.stop>
+            <div class="modal-close" @click="closeReceiptModal()">
+                <i class="fa-solid fa-times"></i>
+            </div>
+            <img :src="selectedReceipt" alt="Payment Receipt" class="modal-image">
+        </div>
+    </div>
+
+    <script>
+        // No charts specific to payments in the provided snippet
+    </script>
+</body>
+</html>
+

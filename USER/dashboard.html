@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrediTrack | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/alpinejs" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4361ee',
+                        secondary: '#3f37c9',
+                        accent: '#4895ef',
+                        success: '#4ade80',
+                        warning: '#fbbf24',
+                        danger: '#f87171',
+                        info: '#60a5fa',
+                        dark: {
+                            900: '#121826',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        malawi: {
+                            green: '#339e35',
+                            red: '#ce1126',
+                            black: '#000000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: #f3f4f6;
+        }
+        
+        .dark body {
+            background-color: #0f172a;
+        }
+        
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-left: 3px solid #4361ee;
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+        }
+        
+        .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .dark .table-row:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
+        }
+        
+        .loan-progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+        
+        .loan-progress::-webkit-progress-bar {
+            background-color: #e5e7eb;
+            border-radius: 4px;
+        }
+        
+        .loan-progress::-webkit-progress-value {
+            background-color: #4361ee;
+            border-radius: 4px;
+        }
+        
+        .offer-card {
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .offer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .quick-action-card {
+            transition: all 0.3s ease;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .quick-action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.2);
+        }
+        
+        .malawi-flag-bg {
+            background: linear-gradient(to bottom, #000000 33%, #ce1126 33%, #ce1126 66%, #339e35 66%);
+        }
+
+        .status-active {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-overdue {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-repaid {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .dark .status-active {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .dark .status-pending {
+            background-color: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .dark .status-overdue {
+            background-color: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .dark .status-repaid {
+            background-color: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            border-color: #4361ee;
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+
+        .file-upload-area.dragover {
+            border-color: #4361ee;
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .dark .file-upload-area {
+            border-color: #4b5563;
+        }
+
+        .dark .file-upload-area:hover {
+            border-color: #4361ee;
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+    </style>
+</head>
+<body class="h-full" x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true',
+        sidebarOpen: window.innerWidth > 1024,
+        currentView: 'dashboard',
+        notificationsOpen: false,
+        profileMenuOpen: false,
+        loanApplicationOpen: false,
+        showPaymentModal: false,
+        paymentAmount: '',
+        paymentMethod: 'Airtel Money',
+        paymentDate: '',
+        receiptFile: null,
+        receiptFileName: '',
+        userProfile: {
+            name: 'John Banda',
+            phone: '+265 991 234 567',
+            email: 'john.banda@example.com',
+            address: 'Lilongwe, Area 3',
+            occupation: 'Business Owner',
+            idType: 'National ID',
+            idNumber: 'MW12345678',
+            creditScore: 720
+        },
+        loanAmount: 50000,
+        loanTerm: 4,
+        loanPurpose: 'Business',
+        nationalIdFile: null,
+        collateralFiles: [],
+        notifications: [
+            { id: 1, type: 'payment', title: 'Payment Due', content: 'Payment of MK15,000 due in 3 days', time: 'Today', read: false },
+            { id: 2, type: 'approval', title: 'Loan Approved', content: 'Your loan of MK50,000 has been approved', time: '2 days ago', read: true },
+            { id: 3, type: 'offer', title: 'Special Offer', content: 'Limited time: Get 1% lower interest rate', time: '5 days ago', read: true }
+        ],
+        unreadCount: 1,
+        loans: [
+            { id: 'L-10245', amount: 'MK50,000', interest: '15%', disbursed: '2023-06-15', due: '2023-12-15', status: 'active', nextPayment: 'MK15,000', nextPaymentDate: '2023-09-15', paid: 30, total: 100 },
+            { id: 'L-10246', amount: 'MK25,000', interest: '12%', disbursed: '2023-07-01', due: '2024-01-01', status: 'pending', nextPayment: 'MK7,500', nextPaymentDate: '2023-10-01', paid: 0, total: 100 },
+            { id: 'L-10247', amount: 'MK75,000', interest: '18%', disbursed: '2023-05-20', due: '2023-11-20', status: 'overdue', nextPayment: 'MK22,500', nextPaymentDate: '2023-08-20', paid: 60, total: 100 },
+            { id: 'L-10248', amount: 'MK100,000', interest: '20%', disbursed: '2023-04-05', due: '2024-04-05', status: 'repaid', nextPayment: 'MK0', nextPaymentDate: 'N/A', paid: 100, total: 100 }
+        ],
+        paymentMethods: [
+            { id: 1, name: 'Airtel Money', icon: 'fa-solid fa-mobile-screen' },
+            { id: 2, name: 'TNM Mpamba', icon: 'fa-solid fa-mobile' },
+            { id: 3, name: 'Standard Bank', icon: 'fa-solid fa-building-columns' },
+            { id: 4, name: 'National Bank', icon: 'fa-solid fa-landmark' },
+            { id: 5, name: 'Cash', icon: 'fa-solid fa-money-bill-wave' }
+        ],
+        get isCashPayment() {
+            return this.paymentMethod === 'Cash';
+        },
+        get requiresReceipt() {
+            return this.paymentMethod !== 'Cash';
+        },
+        handleNationalIdUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+                this.nationalIdFile = file;
+            }
+        },
+        handleCollateralUpload(event) {
+            const files = Array.from(event.target.files);
+            for (let file of files) {
+                if (file.size > 5 * 1024 * 1024) {
+                    alert(`File ${file.name} is too large. Maximum size is 5MB`);
+                    continue;
+                }
+                this.collateralFiles.push(file);
+            }
+        },
+        removeCollateralFile(index) {
+            this.collateralFiles.splice(index, 1);
+        },
+        handleReceiptUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size must be less than 5MB');
+                    return;
+                }
+                
+                // Check file type (images and PDFs only)
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please upload only image files (JPEG, PNG, GIF) or PDF documents');
+                    return;
+                }
+                
+                this.receiptFile = file;
+                this.receiptFileName = file.name;
+            }
+        },
+        removeReceiptFile() {
+            this.receiptFile = null;
+            this.receiptFileName = '';
+            // Reset the file input
+            const fileInput = document.querySelector('#receiptUpload');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        },
+        validatePaymentForm() {
+            if (!this.paymentAmount || parseFloat(this.paymentAmount) <= 0) {
+                alert('Please enter a valid payment amount');
+                return false;
+            }
+            
+            if (this.isCashPayment) {
+                if (!this.paymentDate) {
+                    alert('Please select the payment date for cash payments');
+                    return false;
+                }
+            } else {
+                if (!this.receiptFile) {
+                    alert('Please upload a payment receipt for non-cash payments');
+                    return false;
+                }
+            }
+            
+            return true;
+        },
+        submitPayment() {
+            if (!this.validatePaymentForm()) {
+                return;
+            }
+            
+            // Here you would typically send the payment data to your backend
+            const paymentData = {
+                amount: this.paymentAmount,
+                method: this.paymentMethod,
+                date: this.isCashPayment ? this.paymentDate : new Date().toISOString().split('T')[0],
+                receipt: this.receiptFile,
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('Payment submitted:', paymentData);
+            
+            // Show success message
+            alert(`Payment of MK${this.paymentAmount} via ${this.paymentMethod} has been submitted successfully!`);
+            
+            // Reset form
+            this.paymentAmount = '';
+            this.paymentDate = '';
+            this.removeReceiptFile();
+            this.showPaymentModal = false;
+        }
+    }" 
+    x-init="
+        $watch('darkMode', value => localStorage.setItem('darkMode', value));
+        if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
+    "
+    :class="{ 'dark': darkMode }">
+    <div class="flex h-screen bg-gray-50 dark:bg-dark-900">
+        <!-- Mobile sidebar -->
+        <div x-show="sidebarOpen" x-cloak class="fixed inset-0 flex z-40 lg:hidden">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" @click="sidebarOpen = false" aria-hidden="true"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-dark-800">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button @click="sidebarOpen = false" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:bg-gray-200 dark:focus:bg-dark-700">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fa-solid fa-xmark text-gray-700 dark:text-gray-300 text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-chart-line mr-3 text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-gift mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                    </nav>
+                </div>
+                <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                    <div class="flex-shrink-0">
+                        <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                        <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14" aria-hidden="true"></div>
+        </div>
+
+        <!-- Desktop sidebar -->
+        <div class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-800">
+                <div class="flex flex-col flex-1 pt-5 pb-4 overflow-y-auto">
+                    <div class="flex items-center flex-shrink-0 px-4">
+                        <div class="flex items-center">
+                            <div class="bg-primary p-2 rounded-lg">
+                                <i class="text-white text-2xl fa-solid fa-landmark"></i>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900 dark:text-white">IRM Enterprise</span>
+                        </div>
+                    </div>
+                    <nav class="mt-5 flex-1 px-2 space-y-1">
+                        <a href="dashboard.html" class="sidebar-link active flex items-center px-4 py-3 text-base font-medium rounded-lg group bg-primary/10 text-primary">
+                            <i class="fa-solid fa-chart-line mr-3 text-primary"></i>
+                            Dashboard
+                        </a>
+                        <a href="my_loans.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-file-invoice-dollar mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Loans
+                        </a>
+                        <a href="payback.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-money-bill-transfer mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Payback
+                        </a>
+                        <a href="special_offers.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-gift mr-3 text-gray-500 group-hover:text-primary"></i>
+                            Special Offers
+                        </a>
+                        <a href="my_profile.html" class="sidebar-link flex items-center px-4 py-3 text-base font-medium rounded-lg group">
+                            <i class="fa-solid fa-user mr-3 text-gray-500 group-hover:text-primary"></i>
+                            My Profile
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">John Banda</p>
+                            <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Borrower</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+            <!-- Top navigation -->
+            <div class="relative z-10 flex flex-shrink-0 h-16 bg-white dark:bg-dark-800 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex justify-between w-full px-4">
+                    <div class="flex items-center">
+                        <button @click="sidebarOpen = true" class="px-4 text-gray-500 border-r border-gray-200 dark:border-gray-700 focus:outline-none lg:hidden" aria-label="Open sidebar">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="flex items-center px-4 lg:px-0">
+                            <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button @click="darkMode = !darkMode" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Toggle dark mode" title="Toggle dark mode">
+                            <i x-show="darkMode" class="fa-solid fa-sun"></i>
+                            <i x-show="!darkMode" class="fa-solid fa-moon"></i>
+                        </button>
+                        
+                        <div class="relative">
+                            <button @click="notificationsOpen = !notificationsOpen" class="p-2 text-gray-500 rounded-full hover:bg-gray-100 dark:hover:bg-dark-700 focus:outline-none" aria-label="Open notifications">
+                                <i class="fa-solid fa-bell"></i>
+                                <span x-show="unreadCount > 0" class="notification-dot"></span>
+                            </button>
+                            <div x-show="notificationsOpen" @click.away="notificationsOpen = false" class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-800 rounded-md shadow-lg overflow-hidden z-20" x-cloak>
+                                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notifications</h3>
+                                    <p class="text-sm text-gray-500">You have <span x-text="unreadCount" class="font-medium"></span> unread notifications</p>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <template x-for="notification in notifications">
+                                        <a href="#" @click="if(!notification.read) { notification.read = true; unreadCount--; }" class="block px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700">
+                                            <div class="flex">
+                                                <div class="flex-shrink-0">
+                                                    <template x-if="notification.type === 'payment'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                                                            <i class="fa-solid fa-money-bill-wave"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'approval'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-green-100 text-green-500">
+                                                            <i class="fa-solid fa-check"></i>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="notification.type === 'offer'">
+                                                        <div class="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-100 text-yellow-500">
+                                                            <i class="fa-solid fa-gift"></i>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div class="ml-3">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white" x-text="notification.title"></p>
+                                                    <p class="text-sm text-gray-500" x-text="notification.content"></p>
+                                                    <p class="text-xs text-gray-400 mt-1" x-text="notification.time"></p>
+                                                </div>
+                                                <div class="ml-auto" x-show="!notification.read">
+                                                    <span class="h-2 w-2 rounded-full bg-primary"></span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </template>
+                                </div>
+                                <div class="p-3 bg-gray-50 dark:bg-dark-700 text-center">
+                                    <a href="#" class="text-sm font-medium text-primary hover:text-primary/80">View all notifications</a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="relative">
+                            <button @click="profileMenuOpen = !profileMenuOpen" class="flex text-sm rounded-full focus:outline-none">
+                                <img class="w-8 h-8 rounded-full" src="https://ui-avatars.com/api/?name=John+Banda&background=4361ee&color=fff" alt="John Banda">
+                            </button>
+                            <div x-show="profileMenuOpen" @click.away="profileMenuOpen = false" class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-md shadow-lg py-1 z-20" x-cloak>
+                                <a href="my_profile.html" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Your Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Settings</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-dark-900">
+                <!-- Dashboard Overview -->
+                <div class="fade-in">
+                    <!-- Welcome Section -->
+                    <div class="bg-white dark:bg-dark-800 rounded-lg shadow-sm p-6 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome back, John!</h2>
+                                <p class="text-gray-600 dark:text-gray-400">Here's your loan portfolio overview</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Credit Score</p>
+                                    <p class="text-2xl font-bold text-primary">720</p>
+                                </div>
+                                <div class="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                                    <i class="fa-solid fa-chart-line text-white text-2xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900/20">
+                                    <i class="fa-solid fa-wallet text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Borrowed</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">MK250,000</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900/20">
+                                    <i class="fa-solid fa-check-circle text-green-600 dark:text-green-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Amount Repaid</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">MK175,000</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-yellow-100 dark:bg-yellow-900/20">
+                                    <i class="fa-solid fa-clock text-yellow-600 dark:text-yellow-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Outstanding</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">MK75,000</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900/20">
+                                    <i class="fa-solid fa-calendar-days text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Next Payment</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">3 days</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts and Quick Actions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Payment Schedule Chart -->
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Payment Schedule</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-3 h-3 bg-primary rounded-full"></span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Weekly Payments</span>
+                                </div>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="paymentChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Loan Status Distribution -->
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Loan Status Overview</h3>
+                            <div class="h-64">
+                                <canvas id="loanChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity and Quick Actions -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Recent Loans -->
+                        <div class="lg:col-span-2 card bg-white dark:bg-dark-800 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Loans</h3>
+                                <a href="my_loans.html" class="text-primary hover:text-primary/80 text-sm font-medium">View All</a>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full">
+                                    <thead>
+                                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                                            <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Loan ID</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Amount</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Status</th>
+                                            <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-white">Next Payment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <template x-for="loan in loans.slice(0, 3)" :key="loan.id">
+                                            <tr class="table-row border-b border-gray-100 dark:border-gray-700">
+                                                <td class="py-3 px-4 text-sm font-medium text-gray-900 dark:text-white" x-text="loan.id"></td>
+                                                <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400" x-text="loan.amount"></td>
+                                                <td class="py-3 px-4">
+                                                    <span class="status-badge" :class="
+                                                        loan.status === 'active' ? 'status-active' :
+                                                        loan.status === 'pending' ? 'status-pending' :
+                                                        loan.status === 'overdue' ? 'status-overdue' :
+                                                        'status-repaid'
+                                                    " x-text="loan.status.charAt(0).toUpperCase() + loan.status.slice(1)"></span>
+                                                </td>
+                                                <td class="py-3 px-4 text-sm text-gray-600 dark:text-gray-400" x-text="loan.nextPayment"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card bg-white dark:bg-dark-800 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button @click="loanApplicationOpen = true" class="quick-action-card w-full p-4 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:shadow-lg transition-all">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-plus-circle text-xl mr-3"></i>
+                                        <div class="text-left">
+                                            <p class="font-medium">Apply for Loan</p>
+                                            <p class="text-sm opacity-90">Quick loan application</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <button @click="showPaymentModal = true" class="quick-action-card w-full p-4 bg-white dark:bg-dark-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-lg transition-all">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-credit-card text-xl mr-3 text-green-600"></i>
+                                        <div class="text-left">
+                                            <p class="font-medium text-gray-900 dark:text-white">Make Payment</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Pay your loan installment</p>
+                                        </div>
+                                    </div>
+                                </button>
+
+                                <a href="special_offers.html" class="quick-action-card w-full p-4 bg-white dark:bg-dark-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-lg transition-all block">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-gift text-xl mr-3 text-yellow-600"></i>
+                                        <div class="text-left">
+                                            <p class="font-medium text-gray-900 dark:text-white">Special Offers</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">View available offers</p>
+                                        </div>
+                                    </div>
+                                </a>
+
+                                <a href="my_profile.html" class="quick-action-card w-full p-4 bg-white dark:bg-dark-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:shadow-lg transition-all block">
+                                    <div class="flex items-center">
+                                        <i class="fa-solid fa-user-gear text-xl mr-3 text-blue-600"></i>
+                                        <div class="text-left">
+                                            <p class="font-medium text-gray-900 dark:text-white">Update Profile</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Manage your information</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Payments Alert -->
+                    <div class="mt-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mr-3"></i>
+                            <div>
+                                <h4 class="font-medium text-yellow-800 dark:text-yellow-200">Payment Reminder</h4>
+                                <p class="text-sm text-yellow-700 dark:text-yellow-300">You have a payment of MK15,000 due in 3 days for loan L-10245.</p>
+                            </div>
+                            <button @click="showPaymentModal = true" class="ml-auto bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                                Pay Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loan Application Modal -->
+    <div x-show="loanApplicationOpen" x-cloak class="fixed z-50 inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="loanApplicationOpen = false"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-dark-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                                Apply for New Loan
+                            </h3>
+                            <div class="mt-2 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Amount (MK)</label>
+                                    <input type="number" x-model="loanAmount" title="Enter loan amount" placeholder="Enter loan amount" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Term (weeks)</label>
+                                    <select x-model="loanTerm" title="Select loan term" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                        <option value="1">1 week</option>
+                                        <option value="2">2 weeks</option>
+                                        <option value="3">3 weeks</option>
+                                        <option value="4">4 weeks</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Loan Purpose</label>
+                                    <select x-model="loanPurpose" title="Select loan purpose" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                        <option>Business</option>
+                                        <option>Education</option>
+                                        <option>Medical</option>
+                                        <option>Personal</option>
+                                        <option>Agriculture</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">National ID Document <span class="text-red-500">*</span></label>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                                        <input type="file" id="nationalId" accept="image/*,.pdf" class="hidden" @change="handleNationalIdUpload($event)">
+                                        <label for="nationalId" class="cursor-pointer">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload National ID</p>
+                                                <p class="text-xs text-gray-500 mt-1">Supports: JPG, PNG, PDF (Max 5MB)</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div x-show="nationalIdFile" class="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                                        <div class="flex items-center text-sm text-green-700 dark:text-green-300">
+                                            <i class="fa-solid fa-check-circle mr-2"></i>
+                                            <span x-text="nationalIdFile ? nationalIdFile.name : ''"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Collateral Images <span class="text-red-500">*</span></label>
+                                    <p class="text-xs text-gray-500 mb-2">Upload images of electronic gadgets worth the loan amount</p>
+                                    <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center hover:border-primary transition-colors">
+                                        <input type="file" id="collateral" accept="image/*" multiple class="hidden" @change="handleCollateralUpload($event)">
+                                        <label for="collateral" class="cursor-pointer">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fa-solid fa-images text-3xl text-gray-400 mb-2"></i>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload collateral images</p>
+                                                <p class="text-xs text-gray-500 mt-1">Multiple images allowed (Max 5MB each)</p>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div x-show="collateralFiles.length > 0" class="mt-2 space-y-1">
+                                        <template x-for="(file, index) in collateralFiles" :key="index">
+                                            <div class="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                                                <div class="flex items-center justify-between text-sm text-blue-700 dark:text-blue-300">
+                                                    <div class="flex items-center">
+                                                        <i class="fa-solid fa-image mr-2"></i>
+                                                        <span x-text="file.name"></span>
+                                                    </div>
+                                                    <button @click="removeCollateralFile(index)" class="text-red-500 hover:text-red-700">
+                                                        <i class="fa-solid fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-dark-700 p-4 rounded-lg">
+                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">Loan Summary</h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Amount:</span>
+                                            <span x-text="'MK' + loanAmount.toLocaleString()"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Term:</span>
+                                            <span x-text="loanTerm + ' weeks'"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Interest Rate:</span>
+                                            <span>10%</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-600 dark:text-gray-300">Weekly Payment:</span>
+                                            <span x-text="
+                                                loanTerm === 1 ? 'MK' + (loanAmount * 0.25).toLocaleString() :
+                                                loanTerm === 2 ? 'MK' + (loanAmount * 0.35).toLocaleString() :
+                                                loanTerm === 3 ? 'MK' + (loanAmount * 0.50).toLocaleString() :
+                                                loanTerm === 4 ? 'MK' + (loanAmount * 0.75).toLocaleString() : ''
+                                            "></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="
+                        if (!nationalIdFile) {
+                            alert('Please upload your National ID document');
+                            return;
+                        }
+                        if (collateralFiles.length === 0) {
+                            alert('Please upload at least one collateral image');
+                            return;
+                        }
+                        alert('Loan application submitted successfully!');
+                        loanApplicationOpen = false;
+                        nationalIdFile = null;
+                        collateralFiles = [];
+                    " class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                        Submit Application
+                    </button>
+                    <button type="button" @click="loanApplicationOpen = false; nationalIdFile = null; collateralFiles = [];" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div x-show="showPaymentModal" x-cloak class="fixed z-50 inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75" @click="showPaymentModal = false"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-dark-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white dark:bg-dark-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
+                                Make Payment
+                            </h3>
+                            <div class="mt-2 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount (MK)</label>
+                                    <input type="number" x-model="paymentAmount" placeholder="Enter amount" title="Enter payment amount" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <template x-for="method in paymentMethods" :key="method.id">
+                                            <button @click="paymentMethod = method.name" :class="{'border-primary bg-primary/10': paymentMethod === method.name}" class="flex items-center p-3 border border-gray-300 dark:border-gray-700 rounded-lg hover:border-primary">
+                                                <i :class="method.icon + ' mr-2'" :class="{'text-primary': paymentMethod === method.name}"></i>
+                                                <span x-text="method.name" class="text-sm"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Cash Payment Date Input -->
+                                <div x-show="isCashPayment" class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Payment Date</label>
+                                    <input type="date" x-model="paymentDate" class="w-full border border-gray-300 dark:border-gray-700 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-dark-700 dark:text-white">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Select the date when you made the cash payment</p>
+                                </div>
+
+                                <!-- Receipt Upload for Non-Cash Payments -->
+                                <div x-show="requiresReceipt" class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Payment Receipt</label>
+                                    <div class="file-upload-area" @dragover.prevent @drop.prevent="handleReceiptUpload($event.dataTransfer.files[0])">
+                                        <input type="file" id="receiptUpload" @change="handleReceiptUpload($event)" accept="image/*,.pdf" class="hidden">
+                                        <div x-show="!receiptFile" @click="document.getElementById('receiptUpload').click()" class="cursor-pointer">
+                                            <i class="fa-solid fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload or drag and drop</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-500">PNG, JPG, GIF or PDF (max 5MB)</p>
+                                        </div>
+                                        <div x-show="receiptFile" class="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                                            <div class="flex items-center">
+                                                <i class="fa-solid fa-file-image text-green-600 dark:text-green-400 mr-2"></i>
+                                                <span class="text-sm text-green-800 dark:text-green-200" x-text="receiptFileName"></span>
+                                            </div>
+                                            <button @click="removeReceiptFile()" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                <i class="fa-solid fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">Please upload a screenshot or photo of your payment confirmation</p>
+                                </div>
+                                
+                                <div x-show="paymentMethod === 'Airtel Money' || paymentMethod === 'TNM Mpamba'" class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                                    <p>To complete payment via <span x-text="paymentMethod"></span>:</p>
+                                    <ol class="list-decimal pl-5 mt-1 space-y-1">
+                                        <li>Dial *<span x-text="paymentMethod === 'Airtel Money' ? '211#' : '444#'"></span> on your phone</li>
+                                        <li>Select "Pay Bill"</li>
+                                        <li>Enter Business Number: 123456</li>
+                                        <li>Enter Amount: <span x-text="'MK' + paymentAmount"></span></li>
+                                        <li>Enter Reference: <span x-text="'CR' + Math.floor(Math.random() * 10000)"></span></li>
+                                        <li>Enter your PIN to confirm</li>
+                                        <li>Upload the confirmation receipt above</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-dark-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" @click="submitPayment()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                        Confirm Payment
+                    </button>
+                    <button type="button" @click="showPaymentModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-dark-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Payment Schedule Chart
+            const paymentCtx = document.getElementById("paymentChart");
+            if (paymentCtx) {
+                new Chart(paymentCtx.getContext("2d"), {
+                    type: "bar",
+                    data: {
+                        labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+                        datasets: [{
+                            label: "Payment Amount (MK)",
+                            data: [12500, 17500, 25000, 37500],
+                            backgroundColor: '#4361ee',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Loan Status Chart
+            const loanCtx = document.getElementById("loanChart");
+            if (loanCtx) {
+                new Chart(loanCtx.getContext("2d"), {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Active", "Pending", "Overdue", "Repaid"],
+                        datasets: [{
+                            data: [1, 1, 1, 1],
+                            backgroundColor: ['#4ade80', '#fbbf24', '#f87171', '#60a5fa'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
